@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คู่มือสร้างโดรนควอดคอปเตอร์ — ESP32-S3 + ESP-FLY</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --bg3:#1c2230; --card:#161b22;
+    --line:#2d3748; --text:#e6edf3; --muted:#8b98a9;
+    --accent:#58a6ff; --accent2:#3fb950; --warn:#d29922; --danger:#f85149;
+    --violet:#bc8cff; --cyan:#39c5cf;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:"Segoe UI","Noto Sans Thai","Sarabun","Leelawadee UI",system-ui,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.75; font-size:16px;
+  }
+  ::selection{background:rgba(88,166,255,.35);}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative; overflow:hidden;
+    background:radial-gradient(1200px 500px at 20% -10%, rgba(88,166,255,.25), transparent 60%),
+               radial-gradient(900px 500px at 90% 10%, rgba(188,140,255,.18), transparent 55%),
+               linear-gradient(180deg,#0d1117 0%,#0a0e14 100%);
+    padding:64px 24px 40px; text-align:center; border-bottom:1px solid var(--line);
+  }
+  .hero .badge{
+    display:inline-block; padding:5px 14px; border-radius:999px; font-size:13px;
+    background:rgba(63,185,80,.12); color:var(--accent2); border:1px solid rgba(63,185,80,.4);
+    letter-spacing:.5px; margin-bottom:16px;
+  }
+  .hero h1{
+    font-size:clamp(28px,5vw,48px); font-weight:800; letter-spacing:-.5px;
+    background:linear-gradient(90deg,#58a6ff,#bc8cff,#3fb950);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    margin-bottom:12px;
+  }
+  .hero p.sub{color:var(--muted); font-size:clamp(15px,2vw,19px); max-width:760px; margin:0 auto;}
+  .hero .chips{margin-top:22px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+  .hero .chip{
+    padding:7px 16px; border-radius:999px; background:var(--bg2); border:1px solid var(--line);
+    font-size:13.5px; color:var(--text);
+  }
+  .hero .chip b{color:var(--accent);}
+
+  /* ---------- NAV ---------- */
+  nav{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(10px);
+    background:rgba(13,17,23,.82); border-bottom:1px solid var(--line);
+  }
+  nav .inner{max-width:1080px; margin:0 auto; display:flex; gap:4px; overflow-x:auto; padding:10px 16px;}
+  nav a{
+    white-space:nowrap; text-decoration:none; color:var(--muted); padding:8px 16px;
+    border-radius:10px; font-size:14.5px; font-weight:600; transition:.2s;
+  }
+  nav a:hover{color:var(--text); background:var(--bg3);}
+  nav a.active{color:var(--accent); background:rgba(88,166,255,.12);}
+
+  /* ---------- LAYOUT ---------- */
+  main{max-width:1080px; margin:0 auto; padding:36px 20px 80px;}
+  section{padding:26px 0; scroll-margin-top:70px;}
+  section h2{
+    font-size:clamp(22px,3vw,30px); font-weight:800; margin-bottom:6px;
+    display:flex; align-items:center; gap:12px;
+  }
+  section h2 .num{
+    display:inline-flex; align-items:center; justify-content:center; min-width:42px; height:42px;
+    border-radius:12px; background:linear-gradient(135deg,var(--accent),var(--violet));
+    color:#fff; font-size:19px; font-weight:800;
+  }
+  section > p.lead{color:var(--muted); font-size:16.5px; margin-bottom:22px; max-width:860px;}
+  h3{font-size:20px; margin:30px 0 10px; color:var(--accent); font-weight:700;}
+  h4{font-size:16.5px; margin:20px 0 8px; color:var(--cyan); font-weight:700;}
+  p{margin-bottom:12px;}
+  ul,ol{margin:0 0 14px 22px;}
+  li{margin-bottom:7px;}
+  b,strong{color:#fff;}
+  code{
+    background:var(--bg3); border:1px solid var(--line); padding:2px 7px; border-radius:6px;
+    font-family:"Cascadia Code",Consolas,monospace; font-size:13.5px; color:var(--cyan);
+  }
+  .muted{color:var(--muted);}
+  .accent{color:var(--accent);} .green{color:var(--accent2);} .warn{color:var(--warn);} .red{color:var(--danger);} .violet{color:var(--violet);}
+
+  /* ---------- CARDS / GRID ---------- */
+  .grid{display:grid; gap:16px;}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:20px; transition:.2s;
+  }
+  .card:hover{border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.35);}
+  .card h4{margin-top:0; color:var(--text);}
+  .card .icon{font-size:26px; margin-bottom:8px;}
+  .card p{color:var(--muted); font-size:14.5px; margin-bottom:0;}
+
+  .callout{
+    border-radius:var(--radius); padding:16px 18px; margin:18px 0; border:1px solid; font-size:15px;
+  }
+  .callout.info{background:rgba(88,166,255,.08); border-color:rgba(88,166,255,.35);}
+  .callout.warn{background:rgba(210,153,34,.08); border-color:rgba(210,153,34,.4);}
+  .callout.danger{background:rgba(248,81,73,.08); border-color:rgba(248,81,73,.4);}
+  .callout.ok{background:rgba(63,185,80,.08); border-color:rgba(63,185,80,.4);}
+  .callout b:first-child{display:block; margin-bottom:4px;}
+
+  /* ---------- TABLES ---------- */
+  .tablewrap{overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius); margin:14px 0;}
+  table{width:100%; border-collapse:collapse; font-size:14.5px; min-width:520px;}
+  th{background:var(--bg3); color:var(--accent); text-align:left; padding:11px 14px; font-weight:700;}
+  td{padding:10px 14px; border-top:1px solid var(--line); vertical-align:top;}
+  tr:nth-child(even) td{background:rgba(255,255,255,.015);}
+  td code{white-space:nowrap;}
+
+  /* ---------- CODE BLOCKS ---------- */
+  pre{
+    background:#0a0e14; border:1px solid var(--line); border-radius:12px; padding:16px 18px;
+    overflow-x:auto; margin:14px 0; font-size:13.5px; line-height:1.6;
+    font-family:"Cascadia Code",Consolas,monospace; position:relative;
+  }
+  pre .cmt{color:#6e7681;} pre .k{color:#ff7b72;} pre .s{color:#a5d6ff;} pre .f{color:#79c0ff;} pre .n{color:#d2a8ff;}
+  pre .tag{position:absolute; top:8px; right:12px; font-size:11px; color:#6e7681;}
+
+  /* ---------- DIAGRAMS ---------- */
+  .diagram{background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius); padding:22px; margin:18px 0; overflow-x:auto;}
+  .diagram svg{display:block; margin:0 auto; max-width:100%; height:auto;}
+  .diagram figcaption{text-align:center; color:var(--muted); font-size:13.5px; margin-top:10px;}
+
+  /* ---------- IMAGES / PHOTOS ---------- */
+  figure.photo{
+    background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px; margin:18px 0; text-align:center;
+  }
+  figure.photo img{
+    max-width:100%; height:auto; border-radius:10px; display:block; margin:0 auto;
+    border:1px solid var(--line);
+  }
+  figure.photo figcaption{color:var(--muted); font-size:13.5px; margin-top:10px;}
+  figure.photo.empty{
+    min-height:140px; display:flex; align-items:center; justify-content:center;
+    color:var(--muted); border-style:dashed; font-size:14px;
+  }
+  .photogrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin:18px 0;}
+  .photogrid figure.photo{margin:0;}
+
+  /* ---------- STEP LIST ---------- */
+  ol.steps{counter-reset:step; list-style:none; margin-left:0;}
+  ol.steps > li{
+    counter-increment:step; position:relative; padding:14px 18px 14px 58px; margin-bottom:12px;
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+  }
+  ol.steps > li::before{
+    content:counter(step); position:absolute; left:14px; top:14px; width:30px; height:30px;
+    border-radius:9px; background:linear-gradient(135deg,var(--accent),var(--violet));
+    color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; font-size:15px;
+  }
+  ol.steps > li b{color:var(--accent);}
+
+  /* checklist */
+  ul.check{list-style:none; margin-left:0;}
+  ul.check li{padding-left:30px; position:relative;}
+  ul.check li::before{
+    content:"✔"; position:absolute; left:0; top:0; color:var(--accent2); font-weight:800;
+  }
+
+  /* ---------- PIN MAP ---------- */
+  .pinmap{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:16px 0;}
+  .pin{
+    background:var(--bg2); border:1px solid var(--line); border-left:4px solid var(--accent);
+    border-radius:10px; padding:12px 14px;
+  }
+  .pin .p{font-size:12px; color:var(--muted); letter-spacing:.5px;}
+  .pin .v{font-family:Consolas,monospace; font-size:16px; font-weight:700; color:var(--cyan);}
+  .pin .d{font-size:13px; color:var(--muted);}
+  .pin.motor{border-left-color:var(--warn);}
+  .pin.led{border-left-color:var(--danger);}
+  .pin.i2c{border-left-color:var(--violet);}
+
+  /* ---------- FOOTER ---------- */
+  footer{border-top:1px solid var(--line); padding:28px 20px; text-align:center; color:var(--muted); font-size:14px;}
+
+  @media print{
+    nav{display:none;} body{background:#fff; color:#111;} .card,pre,.diagram,.callout,table{box-shadow:none; border-color:#bbb;}
+    section{page-break-inside:auto;}
+  }
+
+  /* ---------- PROJECTOR MODE ---------- */
+  #projBtn{
+    position:fixed; bottom:18px; right:18px; z-index:999;
+    background:var(--cyan); color:#0d1117; border:none; border-radius:12px;
+    padding:12px 16px; font-size:15px; font-weight:800; cursor:pointer;
+    box-shadow:0 6px 18px rgba(0,0,0,.5); transition:.2s;
+  }
+  #projBtn:hover{transform:scale(1.06);}
+  body.proj{zoom:1.45;}
+  body.proj #projBtn{zoom:0.69;}
+  @media print{ #projBtn{display:none;} }
+</style>
+</head>
+<body>
+
+<button id="projBtn" title="สลับโหมดโปรเจกเตอร์ (ขยาย + เต็มจอ)">🖥️ โหมดโปรเจกเตอร์</button>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <span class="badge">สื่อการสอน · Robotics & IoT</span>
+  <h1>สร้างโดรนควอดคอปเตอร์ด้วยตัวเอง</h1>
+  <p class="sub">ตั้งแต่ทฤษฎีฟิสิกส์การบิน ระบบเซนเซอร์ ตัวควบคุม PID ไปจนถึงขั้นตอนประกอบ Hardware และการเขียน Flash ซอฟต์แวร์บนบอร์ด <b>ESP32-S3 SuperMini</b> ด้วยเฟิร์มแวร์ <b>ESP-FLY (ESP-Drone)</b></p>
+  <div class="chips">
+    <span class="chip">🎛️ MCU: <b>ESP32-S3</b></span>
+    <span class="chip">🧭 IMU: <b>MPU-6050/6500 clone</b></span>
+    <span class="chip">🛩️ มอเตอร์: <b>Brushed 7×20mm ×4</b></span>
+    <span class="chip">📡 สื่อสาร: <b>WiFi + UDP</b></span>
+    <span class="chip">🐍 ควบคุม: <b>cflib (Python)</b></span>
+  </div>
+</header>
+
+<!-- ================= NAV ================= -->
+<nav>
+  <div class="inner">
+    <a href="#overview">🏠 ภาพรวม</a>
+    <a href="#schedule">⏱️ ตารางเวลา</a>
+    <a href="#official">🛸 โดรน Official</a>
+    <a href="#theory">📖 ทฤษฎี</a>
+    <a href="#hardware">🔧 Hardware</a>
+    <a href="#rf">📡 RF/เสาอากาศ</a>
+    <a href="#software">💻 Software</a>
+    <a href="#trouble">🛠️ ปัญหาที่พบบ่อย</a>
+    <a href="#law">⚖️ กฎหมายโดรน</a>
+    <a href="#ai">🤖 AI Agent</a>
+    <a href="#worksheet">📝 ใบงาน</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ================= SCHEDULE ================= -->
+<section id="schedule">
+  <h2><span class="num">⏱️</span> ตารางเวลาหลักสูตร (1.5 วัน)</h2>
+  <p class="lead">แนวทางการจัดคาบ 2 วัน วันละ ~6 ชั่วโมง — ปรับตามเวลาจริงได้ (หมายเลขหัวข้ออ้างอิงในคู่มือนี้)</p>
+  <div class="grid g2">
+    <div class="card">
+      <h4>📅 วัน 1 — ทฤษฎี + ประกอบ</h4>
+      <table>
+        <tr><th>เวลา</th><th>กิจกรรม</th><th>หัวข้อ</th></tr>
+        <tr><td>08:30–09:00</td><td>แนะนำ + ภาพรวม</td><td>หัวข้อ 1 (+ ประวัติ 1.1)</td></tr>
+        <tr><td>09:00–10:30</td><td>ทฤษฎี</td><td>ฟิสิกส์ + หักล้างแรงบิด + ออยเลอร์ (2.1–2.2)</td></tr>
+        <tr><td>10:45–12:00</td><td>ทฤษฎี</td><td>IMU + PID + การสื่อสาร + ESP32 (2.3–2.6)</td></tr>
+        <tr><td>13:00–15:30</td><td>ปฏิบัติ</td><td>BOM + ต่อวงจร + ประกอบโดรน (3)</td></tr>
+        <tr><td>15:30–16:00</td><td>ตรวจเช็ค</td><td>RF/เสาอากาศ + Checklist</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h4>📅 วัน 2 — ซอฟต์แวร์ + บิน</h4>
+      <table>
+        <tr><th>เวลา</th><th>กิจกรรม</th><th>หัวข้อ</th></tr>
+        <tr><td>08:30–09:00</td><td>ทบทวน</td><td>โดรน Official (★)</td></tr>
+        <tr><td>09:00–10:30</td><td>ปฏิบัติ</td><td>ESP-IDF + build + flash (4.1–4.3)</td></tr>
+        <tr><td>10:45–12:00</td><td>ปฏิบัติ</td><td>WiFi + แอปมือถือ + จูน (4.4–4.4.1)</td></tr>
+        <tr><td>13:00–14:30</td><td>ปฏิบัติ</td><td>Python cflib + cfclient + ปัญหาที่พบบ่อย (4.5, 5)</td></tr>
+        <tr><td>14:30–15:00</td><td>บรรยาย</td><td>กฎหมายโดรน + AI Agent (6, 7)</td></tr>
+        <tr><td>15:00–16:00</td><td>กิจกรรม</td><td>ทดสอบบินจริง + สรุป Q&A</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="callout info"><b>💡 เคล็ดลับ</b> เนื้อหาบรรยายรวม ~12 ชม. พอดีกับ 1.5 วัน — ถ้าเวลาน้อย ให้เน้น<b>ปฏิบัติ</b> (ประกอบ + flash + บิน) และให้ส่วนทฤษฎีลึก (สมการออยเลอร์ ฯลฯ) เป็นอ่านเอง</div>
+</section>
+
+<!-- ================= OVERVIEW ================= -->
+<section id="overview">
+  <h2><span class="num">1</span> ภาพรวมระบบ</h2>
+  <p class="lead">โดรนควอดคอปเตอร์ = "โครง + มอเตอร์ 4 ตัว + เซนเซอร์วัดท่าทาง + สมองกล (MCU) + ซอฟต์แวร์ควบคุม" ทุกอย่างต้องทำงานประสานกันเป็นวงรอบปิด (control loop) ประมาณ 500 ครั้งต่อวินาที</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 860 240" width="860" height="240" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,sans-serif">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#58a6ff"/></marker>
+      </defs>
+      <g font-size="13" text-anchor="middle">
+        <rect x="20"  y="85" width="130" height="52" rx="10" fill="#1c2230" stroke="#58a6ff" stroke-width="1.5"/>
+        <text x="85"  y="105" fill="#58a6ff" font-weight="700">เซนเซอร์</text>
+        <text x="85"  y="124" fill="#8b98a9" font-size="11">IMU (accel+gyro)</text>
+
+        <rect x="195" y="85" width="130" height="52" rx="10" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+        <text x="260" y="105" fill="#bc8cff" font-weight="700">ตัวประมาณค่า</text>
+        <text x="260" y="124" fill="#8b98a9" font-size="11">attitude / filter</text>
+
+        <rect x="370" y="85" width="130" height="52" rx="10" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+        <text x="435" y="105" fill="#d29922" font-weight="700">ตัวควบคุม</text>
+        <text x="435" y="124" fill="#8b98a9" font-size="11">PID cascade</text>
+
+        <rect x="545" y="85" width="130" height="52" rx="10" fill="#1c2230" stroke="#3fb950" stroke-width="1.5"/>
+        <text x="610" y="105" fill="#3fb950" font-weight="700">Mixer</text>
+        <text x="610" y="124" fill="#8b98a9" font-size="11">thr/roll/pitch/yaw</text>
+
+        <rect x="720" y="85" width="120" height="52" rx="10" fill="#1c2230" stroke="#f85149" stroke-width="1.5"/>
+        <text x="780" y="105" fill="#f85149" font-weight="700">มอเตอร์ 4 ตัว</text>
+        <text x="780" y="124" fill="#8b98a9" font-size="11">PWM 15 kHz</text>
+
+        <line x1="150" y1="111" x2="193" y2="111" stroke="#58a6ff" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="325" y1="111" x2="368" y2="111" stroke="#58a6ff" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="500" y1="111" x2="543" y2="111" stroke="#58a6ff" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="675" y1="111" x2="718" y2="111" stroke="#58a6ff" stroke-width="2" marker-end="url(#arr)"/>
+
+        <!-- feedback -->
+        <path d="M780,137 L780,200 L85,200 L85,139" fill="none" stroke="#d29922" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arr)"/>
+        <text x="430" y="193" fill="#d29922" font-size="12">feedback (roll / pitch / yaw ที่วัดได้)</text>
+
+        <text x="430" y="40" fill="#8b98a9" font-size="14">🧠 สมองกลทำงานเป็นลูป ~500 Hz: อ่านเซนเซอร์ → คำนวณท่าทาง → PID → ส่ง PWM ให้มอเตอร์</text>
+      </g>
+    </svg>
+    <figcaption>บล็อกไดอะแกรมระบบควบคุมโดรน (วงรอบปิด / closed-loop control)</figcaption>
+  </div>
+
+  <div class="grid g3">
+    <div class="card"><div class="icon">⚙️</div><h4>ส่วนประกอบหลัก</h4><p>โครงควอด · มอเตอร์ 4 + ใบพัด · ESC/มอสเฟต · IMU · ESP32-S3 · แบตเตอรี่ LiPo · รีโมท/แอปควบคุม</p></div>
+    <div class="card"><div class="icon">🧠</div><h4>สมองกล</h4><p>ESP32-S3 SuperMini — MCU 240 MHz พร้อม WiFi ในตัว เหมาะกับโดรนบินในร่ม/ทดลองเรียน</p></div>
+    <div class="card"><div class="icon">🔄</div><h4>วงรอบควบคุม</h4><p>เซนเซอร์บอก "ตอนนี้เอียงเท่าไหร่" → ตัวควบคุมสั่ง "หมุนมอเตอร์ให้กลับมาตรง" — ทำซ้ำ 500 ครั้ง/วินาที</p></div>
+  </div>
+
+  <h3>1.1 ประวัติการพัฒนาโดรน (โดยสังเขป)</h3>
+  <p class="lead">โดรน (UAV — Unmanned Aerial Vehicle) วิวัฒน์จาก "เครื่องบินไร้คนขับ" ในยุคแรก มาสู่ควอดคอปเตอร์อัจฉริยะที่นักเรียนสร้างเองได้ในวันนี้</p>
+  <div class="tablewrap">
+    <table>
+      <tr><th>ปี (โดยประมาณ)</th><th>เหตุการณ์</th><th>ความสำคัญ</th></tr>
+      <tr><td>ค.ศ. 1907</td><td>Breguet-Richet <b>Gyroplane No.1</b> — เครื่องบิน 4 โรเตอร์ลำแรก บินขึ้นจากพื้นได้</td><td>ต้นแบบควอดคอปเตอร์ (quadrotor) แรกของโลก</td></tr>
+      <tr><td>1916–1918</td><td><b>Kettering Bug</b> — เครื่องบินไร้คนขับ บินเองตามกลไกโดยไม่มีนักบิน</td><td>โดรนทหารยุคแรก</td></tr>
+      <tr><td>1935</td><td>อังกฤษพัฒนาโดรนฝึกยิง <b>DH.82B Queen Bee</b></td><td>ที่มาของคำว่า "Drone" (ผึ้งนางพญา)</td></tr>
+      <tr><td>ทศวรรษ 1950–60</td><td>โดรนสอดแนม/ฝึกยิง (Firebee, Lightning Bug) ใช้ในสงครามเวียดนาม</td><td>UAV ทางทหารใช้งานจริง</td></tr>
+      <tr><td>ทศวรรษ 1980–90</td><td>งานอดิเรก RC (บังคับวิทยุ) ขยายตัว + ชิป IMU/GPS เริ่มถูกลง</td><td>รากฐานของโดรน hobby</td></tr>
+      <tr><td>2006</td><td><b>MikroKopter</b> (เยอรมนี) — ควอดคอปเตอร์ hobby เชิงพาณิชย์ตัวแรก</td><td>เปิดยุค multicopter สำหรับคนทั่วไป</td></tr>
+      <tr><td>2010</td><td><b>Parrot AR.Drone</b> — ควอดคอปเตอร์ควบคุมด้วยสมาร์ตโฟนตัวแรก</td><td>โดรนผู้บริโภค + จุดเริ่มต้นบังคับผ่าน WiFi/แอป</td></tr>
+      <tr><td>2013</td><td><b>DJI Phantom</b> — โดรนกล้องพร้อมบินทันที (GPS + gimbal กันสั่น)</td><td>โดรนผู้บริโภคยอดนิยมที่สุดของโลก</td></tr>
+      <tr><td>2014</td><td><b>Bitcraze Crazyflie</b> — นาโนควอด open-source ขนาดจิ๋ว</td><td><b>ต้นแบบเฟิร์มแวร์ ESP-FLY ของเรา</b> (เป็น Crazyflie port)</td></tr>
+      <tr><td>2015–ปัจจุบัน</td><td>FPV racing, AI/autonomous, swarm, delivery (Zipline/Amazon), การเกษตร, สำรวจ</td><td>โดรนอัจฉริยะ + เทคโนโลยี AI</td></tr>
+    </table>
+  </div>
+  <div class="photogrid">
+    <figure class="photo">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Breguet_Gyroplane_1907.jpg/330px-Breguet_Gyroplane_1907.jpg" alt="Breguet-Richet Gyroplane (1907)" loading="lazy">
+      <figcaption>1907 · Gyroplane No.1 — ควอดคอปเตอร์แรกของโลก <span class="muted">(ภาพ: Wikimedia Commons)</span></figcaption>
+    </figure>
+    <figure class="photo">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/3/35/Kettering_Bug.jpg" alt="Kettering Bug (1918)" loading="lazy">
+      <figcaption>1918 · Kettering Bug — โดรนทหารยุคแรก <span class="muted">(ภาพ: Wikimedia Commons)</span></figcaption>
+    </figure>
+    <figure class="photo">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Parrot_AR.Drone_2.0_-_indoor_hull.jpg/330px-Parrot_AR.Drone_2.0_-_indoor_hull.jpg" alt="Parrot AR.Drone (2010)" loading="lazy">
+      <figcaption>2010 · Parrot AR.Drone — บังคับผ่านสมาร์ตโฟนตัวแรก <span class="muted">(ภาพ: Wikimedia Commons)</span></figcaption>
+    </figure>
+    <figure class="photo">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Spying_quadcopter_%28cropped%29.jpg/330px-Spying_quadcopter_%28cropped%29.jpg" alt="DJI Phantom (2013)" loading="lazy">
+      <figcaption>2013 · DJI Phantom — โดรนผู้บริโภคยอดนิยม <span class="muted">(ภาพ: Wikimedia Commons)</span></figcaption>
+    </figure>
+  </div>
+  <div class="grid g3">
+    <div class="card"><div class="icon">🛡️</div><h4>จากทหาร → งานอดิเรก</h4><p>เริ่มจากโดรนทหาร ก่อนพัฒนาเป็นของเล่น/เครื่องมือทั่วไปเมื่อชิปและเซนเซอร์ถูกลง</p></div>
+    <div class="card"><div class="icon">📱</div><h4>มือถือคือตัวเปลี่ยนเกม</h4><p>Parrot AR.Drone (2010) ทำให้บังคับโดรนผ่าน WiFi + สมาร์ตโฟน — แนวคิดเดียวกับ ESP-FLY ของเรา</p></div>
+    <div class="card"><div class="icon">🧩</div><h4>Open source = เรียนรู้ได้</h4><p>Crazyflie/ESP-Drone เปิดเฟิร์มแวร์ให้ศึกษา — เราปรับแต่งเองได้หมด ตั้งแต่ PID ถึงขา GPIO</p></div>
+  </div>
+</section>
+
+<!-- ================= OFFICIAL DRONE ================= -->
+<section id="official">
+  <h2><span class="num">★</span> โดรน Official (ESP32-S2-Drone V1.2)</h2>
+  <p class="lead">โดรนตัวนี้คือ <b>บอร์ดอ้างอิง official ของ Espressif</b> (โครงการ ESP-Drone) — ใช้สำหรับ <b>ทดสอบ/บินจริง</b> เพราะประกอบเสร็จ ต่อสายในตัว ใช้เซนเซอร์แท้ และมีเฟิร์มแวร์ official มาให้พร้อม</p>
+
+  <figure class="photo" style="max-width:420px; margin-left:auto; margin-right:auto;">
+    <img src="https://raw.githubusercontent.com/espressif/esp-drone/master/docs/_static/espdrone_s2_v1_2_2.png" alt="ESP32-S2-Drone V1.2" loading="lazy">
+    <figcaption>ESP32-S2-Drone V1.2 <span class="muted">(ภาพจาก repo ทางการ espressif/esp-drone)</span></figcaption>
+  </figure>
+
+  <div class="grid g2">
+    <div class="card">
+      <h4>🛠️ สเปกที่สำคัญ</h4>
+      <ul>
+        <li>MCU: <b>ESP32-S2-WROVER</b></li>
+        <li>IMU: <b>MPU-6050</b> (อยู่บนบอร์ด ไม่ต้องต่อสาย)</li>
+        <li>เซนเซอร์เสริม (แยกซื้อ): PMW3901+VL53L1X (ตำแหน่ง) · MS5611 (ความสูง) · HMC5883 (เข็มทิศ)</li>
+        <li>เฟิร์มแวร์: official (espressif/esp-drone, อิง Crazyflie เหมือน ESP-FLY)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>📡 เชื่อมต่อเหมือน DIY ทุกอย่าง</h4>
+      <ul>
+        <li>WiFi AP: <code>ESP-DRONE_XXXX</code> (XXXX = MAC) · รหัส <code>12345678</code></li>
+        <li>UDP port <code>2390</code> · IP <code>192.168.43.42</code></li>
+        <li>ใช้แอป <b>ESP-Drone</b> (Android/iOS) หรือ <b>cfclient</b> (PC) หรือ <b>สคริปต์ Python ของเรา</b> ได้ทันที</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout ok"><b>✅ สคริปต์ของเราใช้ได้เลย</b> <code>preflight.py</code>, <code>diag_nan.py</code>, <code>drone_test.py</code> — เพราะอิงโปรโตคอลเดียวกัน (WiFi + UDP + CRTP + cflib) ไม่ต้องแก้โค้ด</div>
+
+  <h3>วิธีเริ่มใช้โดรน official</h3>
+  <ol class="steps">
+    <li><b>ชาร์จแบตและใส่ใบพัด</b> — ใบพัด A/B ตามตำแหน่งในคู่มือ official</li>
+    <li><b>เปิดโดรน</b> — วางบนพื้นราบ นิ่ง ๆ แล้วเปิดสวิตช์ (รอ self-test)</li>
+    <li><b>ต่อ WiFi</b> — โทรศัพท์/คอมพิวเตอร์ต่อ AP <code>ESP-DRONE_XXXX</code> รหัส <code>12345678</code></li>
+    <li><b>เปิดแอป ESP-Drone</b> → กด Connect → โดรนไฟเขียวกระพริบ = เชื่อมต่อแล้ว</li>
+    <li><b>ตรวจก่อนบิน</b> — ไฟแดงที่หัวโดรน = แบตเตอรี่อ่อน; ค่อย ๆ ไล่ throttle ตรวจการตอบสนอง</li>
+    <li><b>PC ดีบั๊ก</b> — ติดตั้ง cfclient: <code>git clone https://github.com/qljz1993/crazyflie-clients-python</code> + <code>pip install -e .</code> + <code>cfclient</code> (ดู log / ปรับ PID ออนไลน์ได้)</li>
+  </ol>
+
+  <h3>ต่างจาก DIY clone ที่เราสร้างอย่างไร</h3>
+  <div class="tablewrap">
+    <table>
+      <tr><th>หัวข้อ</th><th>DIY (ESP32-S3 + ESP-FLY)</th><th>Official (ESP32-S2-Drone V1.2)</th></tr>
+      <tr><td>MCU</td><td>ESP32-S3 SuperMini</td><td>ESP32-S2-WROVER</td></tr>
+      <tr><td>การประกอบ</td><td>ต่อสายเอง (มอเตอร์/IMU/LED)</td><td>บอร์ดสำเร็จ ต่อสายในตัว</td></tr>
+      <tr><td>เฟิร์มแวร์</td><td>ESP-FLY ที่เราแก้ (clone-friendly)</td><td>ESP-Drone official</td></tr>
+      <tr><td>IMU</td><td>โมดูล clone (มีปัญหา latch)</td><td>MPU-6050 แท้ บนบอร์ด</td></tr>
+      <tr><td>จุดประสงค์</td><td>เรียนรู้ / ต่อวงจร / แก้ปัญหา</td><td>บินจริง / สาธิต</td></tr>
+      <tr><td>WiFi/UDP/CRTP</td><td colspan="2" style="text-align:center">เหมือนกันทุกอย่าง (ESP-DRONE_XXXX / 12345678 / 2390)</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ================= THEORY ================= -->
+<section id="theory">
+  <h2><span class="num">2</span> ทฤษฎีที่ต้องรู้</h2>
+  <p class="lead">ก่อนลงมือสร้าง ต้องเข้าใจ 5 เรื่องหลัก: <b>ฟิสิกส์การบิน</b> · <b>คณิตศาสตร์ท่าทาง (มุมออยเลอร์)</b> · <b>เซนเซอร์</b> · <b>ตัวควบคุม PID</b> · <b>การสื่อสาร</b></p>
+
+  <h3>2.1 ฟิสิกส์การบินของควอดคอปเตอร์</h3>
+  <div class="grid g2">
+    <div class="card">
+      <h4>✈️ แรงยก (Thrust)</h4>
+      <p>ใบพัดหมุนแล้วดันอากาศลงข้างล่าง เกิดแรงปฏิกิริยาดันตัวโดรนขึ้นข้างบน (กฎข้อที่ 3 ของนิวตัน)</p>
+      <p style="margin-top:8px">โดรนลอยอยู่นิ่งต้องได้แรงยกเท่ากับน้ำหนัก:</p>
+      <p style="text-align:center; font-family:Consolas,monospace; color:var(--cyan); font-size:18px; margin:6px 0">4 × T = m × g</p>
+      <p class="muted" style="font-size:13px">T = แรงยกต่อมอเตอร์, m = มวลโดรน, g = 9.81 m/s² — ถ้าแรงยกมากกว่าน้ำหนัก → โดรนไต่ขึ้น (throttle มากขึ้น)</p>
+    </div>
+    <div class="card">
+      <h4>🔄 แรงบิด (Torque)</h4>
+      <p>มอเตอร์ที่หมุนตามเข็มนาฬิกา (CW) จะทำให้เฟรมปั่นทวนเข็ม (action–reaction) ดังนั้นเราจึงสลับทิศใบพัด <b>CW–CCW–CW–CCW</b> เพื่อตัดแรงบิดหัน (yaw) ให้หักล้างกันเอง</p>
+      <p class="muted" style="font-size:13px">เวลา "หันซ้าย/ขวา" ก็คือการเร่งมอเตอร์คู่ CW หรือ CCW ให้แรงบิดไม่สมดุลกันนั่นเอง</p>
+    </div>
+  </div>
+
+  <h4>ทิศทางการหมุนและการควบคุม Roll / Pitch / Yaw</h4>
+  <div class="diagram">
+    <svg viewBox="0 0 460 300" width="460" height="300" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,sans-serif">
+      <defs>
+        <marker id="ar2" markerWidth="7" markerHeight="7" refX="5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#3fb950"/></marker>
+      </defs>
+      <!-- frame -->
+      <line x1="30" y1="150" x2="430" y2="150" stroke="#2d3748" stroke-width="6" stroke-linecap="round"/>
+      <line x1="230" y1="30" x2="230" y2="270" stroke="#2d3748" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="230" cy="150" r="16" fill="#1c2230" stroke="#58a6ff" stroke-width="2"/>
+      <text x="230" y="155" text-anchor="middle" font-size="12" fill="#58a6ff">MCU</text>
+      <!-- motors -->
+      <g text-anchor="middle" font-size="12">
+        <circle cx="230" cy="55" r="24" fill="#1c2230" stroke="#f85149" stroke-width="2"/><text x="230" y="59" fill="#f85149">M1</text>
+        <text x="230" y="30" fill="#8b98a9" font-size="11">(ด้านหน้า)</text>
+        <circle cx="400" cy="150" r="24" fill="#1c2230" stroke="#f85149" stroke-width="2"/><text x="400" y="154" fill="#f85149">M2</text>
+        <circle cx="230" cy="245" r="24" fill="#1c2230" stroke="#f85149" stroke-width="2"/><text x="230" y="249" fill="#f85149">M3</text>
+        <circle cx="60" cy="150" r="24" fill="#1c2230" stroke="#f85149" stroke-width="2"/><text x="60" y="154" fill="#f85149">M4</text>
+        <text x="60" y="285" fill="#8b98a9" font-size="11">M1=GPIO4 · M2=GPIO5 · M3=GPIO6 · M4=GPIO7</text>
+      </g>
+      <!-- rotation arrows -->
+      <g fill="#3fb950" font-size="11" text-anchor="middle">
+        <path d="M214,32 Q230,18 246,32" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#ar2)"/><text x="230" y="13">หมุน CW</text>
+        <path d="M384,127 Q400,113 416,127" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#ar2)"/><text x="400" y="108">CCW</text>
+        <path d="M214,222 Q230,208 246,222" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#ar2)"/><text x="230" y="203">CW</text>
+        <path d="M44,127 Q60,113 76,127" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#ar2)"/><text x="60" y="108">CCW</text>
+      </g>
+    </svg>
+    <figcaption>การจัดมอเตอร์แบบ X-quad: M1/M3 หมุน CW, M2/M4 หมุน CCW — ใบพัด CW และ CCW ต้องใช้คนละชุด (ล็อกเกลียวต่างทิศ)</figcaption>
+  </div>
+
+  <div class="grid g3">
+    <div class="card"><h4>🔼 Throttle (คันเร่ง)</h4><p>เพิ่ม/ลดกำลังมอเตอร์ทั้ง 4 ตัวพร้อมกัน → โดรนขึ้น/ลง</p></div>
+    <div class="card"><h4>↔️ Roll (เอียงซ้าย-ขวา)</h4><p>M2 กับ M4 ต่างกัน (ข้างหนึ่งเร่ง อีกข้างผ่อน) → โดรนเอียงไปด้านข้าง</p></div>
+    <div class="card"><h4>↕️ Pitch (ก้ม-เงย)</h4><p>M1 กับ M3 ต่างกัน → โดรนโน้มหน้า/หลัง</p></div>
+    <div class="card"><h4>🔄 Yaw (หันซ้าย-ขวา)</h4><p>คู่ CW กับคู่ CCW ต่างกัน → เกิดแรงบิดหันตัว</p></div>
+  </div>
+
+  <h4>สมการ Mixer (จับคู่คำสั่ง → กำลังมอเตอร์แต่ละตัว)</h4>
+  <pre><span class="tag">quad mixer</span><span class="cmt"># โดยประมาณ (ค่าจริงดูใน power_distribution_stock.c)</span>
+<span class="n">m1</span> = <span class="n">throttle</span> + <span class="n">pitch</span> + <span class="n">yaw</span>
+<span class="n">m2</span> = <span class="n">throttle</span> − <span class="n">roll</span>  − <span class="n">yaw</span>
+<span class="n">m3</span> = <span class="n">throttle</span> − <span class="n">pitch</span> + <span class="n">yaw</span>
+<span class="n">m4</span> = <span class="n">throttle</span> + <span class="n">roll</span>  − <span class="n">yaw</span></pre>
+
+  <h4>การหักล้างแรงบิดของใบพัด (Torque cancellation)</h4>
+  <p>ใบพัดหมุนดันอากาศลงเพื่อสร้างแรงยก แต่ <b>การหมุนนั้นสร้างแรงบิดโต้กลับ (reaction torque) ในทิศตรงข้ามเสมอ</b> — ใบพัด CW จะผลักเฟรมให้อยากหมุนทวนเข็ม ถ้าใบพัดทั้ง 4 หมุนทิศเดียวกัน โดรนจะปั่นหมุนรอบแกนตั้งเอง (yaw spin) ควบคุมไม่ได้</p>
+  <div class="grid g2">
+    <div class="card"><h4>⚖️ วิธีหักล้าง</h4><p>หมุนสลับทิศ 2+2: <b>M1+M3 หมุน CW</b>, <b>M2+M4 หมุน CCW</b> — เมื่อ throttle เท่ากัน แรงบิด CW กับ CCW หักล้างกันพอดี → โดรนลอยนิ่งไม่หันเอง</p></div>
+    <div class="card"><h4>🔄 ใช้หันซ้าย/ขวา (Yaw)</h4><p>ทำให้ไม่สมดุลชั่วคราว: เพิ่มคู่ CW (M1,M3) → หมุนซ้าย · เพิ่มคู่ CCW (M2,M4) → หมุนขวา — โดยแรงยกสุทธิยังเท่าเดิม</p></div>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <tr><th>ต้องการ</th><th>ทำ</th><th>ผล</th></tr>
+      <tr><td>หันซ้าย</td><td>เพิ่มคู่ CW (M1,M3) / ลดคู่ CCW (M2,M4)</td><td>แรงบิด CW ชนะ → หมุนทวนเข็ม (ซ้าย)</td></tr>
+      <tr><td>หันขวา</td><td>เพิ่มคู่ CCW (M2,M4) / ลดคู่ CW (M1,M3)</td><td>แรงบิด CCW ชนะ → หมุนตามเข็ม (ขวา)</td></tr>
+    </table>
+  </div>
+  <p class="muted" style="font-size:13px">ดูจากสมการ mixer ด้านบน: เทอม <code>yaw</code> มีเครื่องหมาย<b>ตรงข้ามกัน</b>ระหว่างคู่ CW (m1, m3 = +yaw) กับคู่ CCW (m2, m4 = −yaw) — นี่คือการสั่ง "หักล้าง" ในโค้ด</p>
+  <div class="callout warn"><b>⚠️ ตอนประกอบ</b> ใบพัด CW กับ CCW <b>ต่างกัน</b> (มุมเอียงคนละทิศ) — ใส่ผิดทิศจะได้แรงยกผิดทาง บินไม่ขึ้น และเกลียวล็อกใบพัดก็คนละทิศ (self-tightening) หมุนตามแรงบิดแล้วแน่นเอง</div>
+
+  <h3>2.2 คณิตศาสตร์ท่าทาง — มุมออยเลอร์ (Euler angles) และ Quaternion</h3>
+  <p>ท่าทางของโดรน (attitude) คือ "ตอนนี้เอียง/หันไปทางไหน" — เขียนแทนด้วยการหมุน 3 แกน: <b>roll (φ)</b> รอบแกนหน้า-หลัง, <b>pitch (θ)</b> รอบแกนซ้าย-ขวา, <b>yaw (ψ)</b> รอบแกนตั้ง เรียกรวมว่า <b>มุมออยเลอร์</b> (Euler angles) ตามชื่อ <b>เลออนฮาร์ด ออยเลอร์</b> นักคณิตศาสตร์ชาวสวิสผู้วางรากฐานกลศาสตร์การหมุน</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 470 250" width="470" height="250" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,sans-serif">
+      <defs>
+        <marker id="arE" markerWidth="7" markerHeight="7" refX="5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#3fb950"/></marker>
+      </defs>
+      <!-- body -->
+      <rect x="175" y="118" width="100" height="42" rx="8" fill="#1c2230" stroke="#58a6ff" stroke-width="2"/>
+      <text x="225" y="144" text-anchor="middle" font-size="12" fill="#58a6ff">โดรน</text>
+      <!-- X axis roll (red) -->
+      <line x1="55" y1="139" x2="175" y2="139" stroke="#f85149" stroke-width="2"/>
+      <line x1="275" y1="139" x2="420" y2="139" stroke="#f85149" stroke-width="2"/>
+      <text x="438" y="143" fill="#f85149" font-size="13">X (roll φ)</text>
+      <path d="M95,118 Q78,139 95,160" fill="none" stroke="#f85149" stroke-width="1.5" marker-end="url(#arE)"/>
+      <path d="M355,118 Q372,139 355,160" fill="none" stroke="#f85149" stroke-width="1.5"/>
+      <!-- Y axis pitch (green) -->
+      <line x1="225" y1="30" x2="225" y2="118" stroke="#3fb950" stroke-width="2"/>
+      <line x1="225" y1="160" x2="225" y2="225" stroke="#3fb950" stroke-width="2"/>
+      <text x="225" y="22" text-anchor="middle" fill="#3fb950" font-size="13">Y (pitch θ)</text>
+      <path d="M205,75 Q225,55 245,75" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arE)"/>
+      <!-- Z axis yaw (cyan) -->
+      <line x1="355" y1="40" x2="355" y2="215" stroke="#58a6ff" stroke-width="2" stroke-dasharray="4 3"/>
+      <text x="355" y="32" text-anchor="middle" fill="#58a6ff" font-size="13">Z (yaw ψ)</text>
+      <path d="M305,139 a52,13 0 1 0 100,0 a52,13 0 1 0 -100,0" fill="none" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arE)"/>
+      <text x="355" y="196" text-anchor="middle" fill="#8b98a9" font-size="11">หมุนรอบ Z → หันซ้าย/ขวา</text>
+      <text x="80" y="225" fill="#8b98a9" font-size="11">ระบบพิกัด NED: X = หน้า · Y = ขวา · Z = ลง</text>
+    </svg>
+    <figcaption>มุมออยเลอร์ 3 ค่า (φ, θ, ψ) บรรยายท่าทางโดรน — หมุนรอบ X = roll · รอบ Y = pitch · รอบ Z = yaw</figcaption>
+  </div>
+
+  <div class="grid g3">
+    <div class="card"><h4>🔄 Roll φ (แกน X)</h4><p>เอียงซ้าย-ขวา — ควบคุมโดยผลต่าง <code>M2 vs M4</code></p></div>
+    <div class="card"><h4>↕️ Pitch θ (แกน Y)</h4><p>ก้ม/เงย — ควบคุมโดยผลต่าง <code>M1 vs M3</code></p></div>
+    <div class="card"><h4>🧭 Yaw ψ (แกน Z)</h4><p>หันซ้าย/ขวา — ควบคุมโดยคู่ CW vs CCW</p></div>
+  </div>
+
+  <h4>Rotation matrix — แปลงมุม → ทิศทางใน 3 มิติ</h4>
+  <p>การหมุนรอบแต่ละแกนเขียนเป็นเมทริกซ์ (ให้ C = cos, S = sin):</p>
+<pre><span class="tag">rotation matrices</span><span class="cmt"># Rz(ψ) · Ry(θ) · Rx(φ) — ลำดับ Z-Y-X</span>
+<span class="n">Rx(φ)</span> = | 1   0     0   |    <span class="n">Ry(θ)</span> = | cosθ  0  sinθ |    <span class="n">Rz(ψ)</span> = | cosψ −sinψ 0 |
+         | 0  cosφ −sinφ |             |  0    1   0  |             | sinψ  cosψ 0 |
+         | 0  sinφ  cosφ |             | −sinθ 0  cosθ |             |  0     0    1 |</pre>
+  <p style="text-align:center; font-family:Consolas,monospace; color:var(--cyan); font-size:17px; margin:8px 0">R<sub>รวม</sub> = Rz(ψ) · Ry(θ) · Rx(φ)  &nbsp;→&nbsp;  ทิศทาง<sub>3D</sub> = R<sub>รวม</sub> · เวกเตอร์<sub>อ้างอิง</sub></p>
+  <div class="callout warn"><b>⚠️ ลำดับการหมุนสำคัญมาก</b> การหมุน<b>ไม่สลับที่กัน</b> (non-commutative): Rx·Ry ≠ Ry·Rx — เหมือน "เปิดประตูแล้วหมุนตัว" กับ "หมุนตัวแล้วเปิดประตู" ผลไม่เหมือนกัน firmware จึงต้องใช้ลำดับเดียวกันตลอด (ที่นี่ Z-Y-X)</div>
+
+  <h4>Gimbal lock — จุดอ่อนของมุมออยเลอร์</h4>
+  <p>เมื่อ <code>pitch = ±90°</code> แกน roll กับ yaw จะ<b>ทับกัน</b> (เสีย 1 องศาอิสระ) → มุมกระโดด/คำนวณเพี้ยน ระบบจริงจึงนิยมใช้ <b>quaternion</b> (w, x, y, z) 4 ตัวเลขแทนการหมุน — ไม่มี gimbal lock, คำนวณเสถียร และเป็นหัวใจของ <b>Madgwick / Mahony filter</b> ใน firmware โดรน (เฟิร์มแวร์ ESP-FLY ใช้วิธีนี้)</p>
+
+  <h4>สมการการหมุนของออยเลอร์ (Euler's rotation equation) — ฟิสิกส์</h4>
+  <p>กฎข้อ 2 ของนิวตัน <b>สำหรับการหมุน</b>: แรงบิด <b>τ</b> ทำให้เกิดความเร่งเชิงมุม โดยสัมพันธ์กับโมเมนต์ความเฉื่อย <b>I</b> และความเร็วเชิงมุม <b>ω</b>:</p>
+  <p style="text-align:center; font-family:Consolas,monospace; color:var(--cyan); font-size:19px; margin:10px 0">τ = I·α + ω × (I·ω) &nbsp;&nbsp;&nbsp;(α = ω̇ = ความเร่งเชิงมุม)</p>
+  <div class="grid g2">
+    <div class="card"><h4>I·α — เทอม "มวล×ความเร่ง"</h4><p>แรงบิดที่ทำให้เกิดความเร่งเชิงมุม เปรียบเหมือน <code>F = m·a</code> ในการหมุน — I คือ "ความเฉื่อยต่อการหมุน" (ขึ้นกับมวล + การกระจายตัว เช่น แขนยาว ๆ ยากกว่าจะหมุน)</p></div>
+    <div class="card"><h4>ω × (I·ω) — เทอมไจโรสโคปิก</h4><p>ผลจากการหมุนหลายแกนพร้อมกัน ทำให้แรงบิด "ปนกัน" (cross-coupling) เช่น หัน yaw พร้อมก้ม pitch จะเกิดแรงบิด roll แทรก — ระบบควบคุมต้องชดเชย โดรนที่เล็ก/เบาจึงควบคุมง่ายกว่าโดรนใหญ่</p></div>
+  </div>
+  <p>เขียนแยกแต่ละแกน (โดยประมาณ เมื่อแกนหลักตรงกับแกนเฉื่อย):</p>
+<pre><span class="tag">สมการแยกแกน</span><span class="n">τx</span> = Ixx·ω̇x + (Izz − Iyy)·ωy·ωz
+<span class="n">τy</span> = Iyy·ω̇y + (Ixx − Izz)·ωx·ωz
+<span class="n">τz</span> = Izz·ω̇z + (Iyy − Ixx)·ωx·ωy</pre>
+  <p class="muted" style="font-size:13px">เทอม (Izz−Iyy)·ωy·ωz ฯลฯ คือตัวที่ทำให้ "หมุนแกนเดียวแล้วแกนอื่นขยับตาม" — นี่คือเหตุผลที่ต้องใช้ <b>Rate PID</b> ควบคุมอัตราหมุนแต่ละแกน และเหตุผลที่ firmware รัน control loop เร็ว ๆ (~500 Hz)</p>
+
+  <h4>จากทฤษฎี → โค้ดจริง</h4>
+  <ul>
+    <li>firmware ใช้ <b>Mahony/Madgwick</b> หลอมรวม accel + gyro → ได้มุมออยเลอร์ (roll/pitch/yaw) หรือ quaternion</li>
+    <li>มุมที่ได้ถูกส่งเข้า <b>PID ตัวนอก (attitude)</b> แล้วไล่ต่อไป mixer → มอเตอร์ (ดูหัวข้อ 2.4)</li>
+    <li>ใน <code>cflib</code> เราอ่านค่า <code>stabilizer.roll / stabilizer.pitch / stabilizer.yaw</code> ได้ตรง ๆ — ค่าเหล่านี้คือมุมออยเลอร์นั่นเอง</li>
+  </ul>
+
+  <h3>2.3 เซนเซอร์ IMU (Inertial Measurement Unit)</h3>
+  <div class="grid g2">
+    <div class="card">
+      <h4>📏 Accelerometer (มาตรความเร่ง)</h4>
+      <ul>
+        <li>วัดความเร่ง 3 แกน (หน่วย g)</li>
+        <li>ตอนอยู่นิ่งจะรู้ทิศ "ลง" (แรงโน้มถ่วง) → หา <b>roll/pitch</b> ได้แม่น</li>
+        <li><b>ข้อเสีย:</b> ตอนโดรนเคลื่อนที่/สั่น จะมี noise เยอะ</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>🌀 Gyroscope (ไจโรสโคป)</h4>
+      <ul>
+        <li>วัดอัตราการหมุนเชิงมุม (°/s) รอบ 3 แกน</li>
+        <li>ตอบสนองเร็ว ใช้ integrate หาท่าทางได้ทันที</li>
+        <li><b>ข้อเสีย:</b> มี <b>drift</b> (ค่าลอยสะสม) เมื่อเวลาผ่านไป</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout info"><b>💡 Sensor Fusion (การหลอมรวมเซนเซอร์)</b> ใช้จุดเด่นของทั้งคู่: <b>accel</b> คุมระยะยาว (แก้ drift ของ gyro) + <b>gyro</b> คุมช่วงสั้น (ตอบสนองไว) → ได้ท่าทางแม่นยำ เช่น Complementary Filter, Madgwick หรือ Mahony filter</div>
+
+  <h3>2.4 ตัวควบคุม PID</h3>
+  <p>PID คือสูตรคณิตศาสตร์ที่ใช้ "ผิดพลาดเท่าไหร่ → ต้องชดเชยเท่าไหร่" ให้โดรนกลับไปอยู่ในท่าที่สั่ง:</p>
+  <p style="text-align:center; font-family:Consolas,monospace; color:var(--cyan); font-size:19px; margin:10px 0">u(t) = K<sub>p</sub>·e(t) + K<sub>i</sub>·∫e(t)dt + K<sub>d</sub>·de(t)/dt</p>
+  <div class="grid g3">
+    <div class="card"><h4>P — Proportional</h4><p>ตอบตาม "ความผิดพลาดตอนนี้" — ยิ่งเอียงมากยิ่งเร่งแรง แค่ P อย่างเดียวจะแกว่ง/เหลื่อม</p></div>
+    <div class="card"><h4>I — Integral</h4><p>สะสม "ความผิดพลาดสะสม" — กำจัดค่าเหลื่อมคงค้าง (เช่น โดรนเอียงค้างเล็กน้อยตลอด)</p></div>
+    <div class="card"><h4>D — Derivative</h4><p>ดู "แนวโน้มความเร็วของความผิดพลาด" — ช่วยหน่วง ลดการแกว่ง (damping)</p></div>
+  </div>
+  <h4>Cascade control: ควบคุมเป็น 2 ชั้น</h4>
+  <div class="diagram">
+    <svg viewBox="0 0 860 120" width="860" height="120" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,sans-serif">
+      <defs><marker id="ar3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#58a6ff"/></marker></defs>
+      <g font-size="13" text-anchor="middle">
+        <rect x="20" y="34" width="200" height="46" rx="10" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+        <text x="120" y="52" fill="#d29922" font-weight="700">Attitude PID (outer)</text><text x="120" y="69" fill="#8b98a9" font-size="11">เป้า: มุม roll/pitch/yaw</text>
+        <rect x="300" y="34" width="180" height="46" rx="10" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+        <text x="390" y="52" fill="#bc8cff" font-weight="700">Rate PID (inner)</text><text x="390" y="69" fill="#8b98a9" font-size="11">เป้า: อัตรา °/s</text>
+        <rect x="560" y="34" width="120" height="46" rx="10" fill="#1c2230" stroke="#3fb950" stroke-width="1.5"/>
+        <text x="620" y="57" fill="#3fb950" font-weight="700">Mixer</text>
+        <line x1="220" y1="57" x2="298" y2="57" stroke="#58a6ff" stroke-width="2" marker-end="url(#ar3)"/>
+        <line x1="480" y1="57" x2="558" y2="57" stroke="#58a6ff" stroke-width="2" marker-end="url(#ar3)"/>
+        <text x="430" y="105" fill="#8b98a9" font-size="12">attitude loop (~100 Hz) → rate loop (~500 Hz) → mixer → PWM → มอเตอร์</text>
+      </g>
+    </svg>
+    <figcaption>ควบคุมมุม (outer) อยู่ด้านนอก ควบคุมอัตราหมุน (inner) อยู่ด้านใน — ทำไมต้อง 2 ชั้น? เพราะควบคุมมุมตรง ๆ ไม่เสถียร ต้องคุม "ความเร็วหมุน" ก่อน</figcaption>
+  </div>
+
+  <h3>2.5 การสื่อสาร (WiFi + UDP + CRTP)</h3>
+  <ul>
+    <li>ESP32-S3 เปิด <b>WiFi Access Point</b> ชื่อ <code>ESP-DRONE_XXXXXXXXXXXX</code> รหัส <code>12345678</code></li>
+    <li>คอมพิวเตอร์/แอปเชื่อมต่อ WiFi นี้ แล้วส่งคำสั่งเป็นแพ็กเก็ต <b>UDP</b> ไปที่ <code>192.168.43.42:2390</code></li>
+    <li>โปรโตคอล <b>CRTP</b> (Crazyflie Radio Transfer Protocol) — โครงสร้างแพ็กเก็ต: header + payload + checksum แบ่งเป็น port/channel เช่น port 0 = setpoint (คำสั่งบิน), port 5 = log (อ่านค่าข้อมูล), port 2 = param</li>
+    <li>ไลบรารี <b>cflib</b> (Python) จัดการโปรโตคอลนี้ให้เรา ใช้ควบคุม/อ่านค่าจากโดรนได้ง่าย</li>
+  </ul>
+
+  <h3>2.6 ESP32 พื้นฐานที่ต้องรู้</h3>
+  <div class="grid g3">
+    <div class="card"><h4>GPIO</h4><p>ขาอินพุต/เอาต์พุตดิจิทัล ควบคุมเปิด-ปิดอุปกรณ์ ตั้งขาได้ตามต้องการ</p></div>
+    <div class="card"><h4>PWM / LEDC</h4><p>สร้างสัญญาณปรับความกว้างพัลส์ ใช้ควบคุมความเร็วมอเตอร์ (15 kHz) และความสว่าง LED</p></div>
+    <div class="card"><h4>I2C</h4><p>บัสสื่อสาร 2 เส้น (SDA/SCL) ใช้คุยกับเซนเซอร์ IMU (400 kHz)</p></div>
+    <div class="card"><h4>SPI</h4><p>บัสความเร็วสูง ใช้กับเซนเซอร์เสริม เช่น optical flow</p></div>
+    <div class="card"><h4>WiFi</h4><p>เชื่อมต่อไร้สายในตัว ใช้รับคำสั่งจากแอป/คอมพิวเตอร์</p></div>
+    <div class="card"><h4>FreeRTOS</h4><p>ระบบปฏิบัติการแบบเรียลไทม์ จัดการหลายงานพร้อมกัน: งานเซนเซอร์ งานควบคุม งาน WiFi งาน log</p></div>
+  </div>
+</section>
+
+<!-- ================= HARDWARE ================= -->
+<section id="hardware">
+  <h2><span class="num">3</span> ขั้นตอนการสร้าง Hardware</h2>
+  <p class="lead">เริ่มจากรายการอุปกรณ์ → ต่อวงจรตามแผนภาพ → ตรวจเช็คก่อนจ่ายไฟเสมอ</p>
+
+  <h3>3.1 รายการอุปกรณ์ (BOM)</h3>
+  <div class="tablewrap">
+    <table>
+      <tr><th>#</th><th>อุปกรณ์</th><th>จำนวน</th><th>ราคาโดยประมาณ</th><th>หมายเหตุ</th></tr>
+      <tr><td>1</td><td>ESP32-S3 SuperMini</td><td>1</td><td>~150–250 บาท</td><td>MCU + WiFi ในตัว (บอร์ดนี้ขา = หมายเลข GPIO)</td></tr>
+      <tr><td>2</td><td>โมดูล IMU MPU-6050/6500 (clone)</td><td>1</td><td>~30–80 บาท</td><td>ที่อยู่ I2C 0x68, WHO_AM_I = 0x70 — เลือกรุ่นที่ต่อไฟ 3.3V</td></tr>
+      <tr><td>3</td><td>มอเตอร์ Brushed 7×20 mm (coreless)</td><td>4</td><td>~20–60 บาท/ตัว</td><td>M1–M4 พร้อมใบพัด CW/CCW</td></tr>
+      <tr><td>4</td><td>มอสเฟต (MOSFET) + ไดโอด</td><td>4</td><td>~5–15 บาท/ชุด</td><td>สวิตช์จ่ายไฟให้มอเตอร์ — หรือใช้ ESC ตัวเล็ก (~50–100 บาท/ตัว) แทน</td></tr>
+      <tr><td>5</td><td>โครงโดรน + ใบพัด 2 ชุด</td><td>1</td><td>~100–300 บาท</td><td>ใบพัด CW กับ CCW ต่างกัน (ล็อกเกลียวคนละทิศ)</td></tr>
+      <tr><td>6</td><td>ใบพัดป้องกัน (prop guard)</td><td>ชุด</td><td>~50–150 บาท</td><td>แนะนำมากสำหรับห้องเรียน — ลดอันตราย/ใบพัดหัก</td></tr>
+      <tr><td>7</td><td>แบตเตอรี่ LiPo 1S–2S (3.7–7.4V) + ที่ชาร์จ</td><td>1</td><td>~150–400 บาท</td><td>รุ่นทดลองอาจใช้ Power Bank แทน (แต่บินจริงต้อง LiPo + ชาร์จอย่างปลอดภัย)</td></tr>
+      <tr><td>8</td><td>สายไฟ/ฮีทชริงค์/ขั้วต่อ/เขียงหัด</td><td>—</td><td>~50–150 บาท</td><td>ต่อไฟและสัญญาณให้แน่นหนา</td></tr>
+      <tr><td>9</td><td>LED 3 สี (เขียว/น้ำเงิน/แดง) + R 330Ω</td><td>ชุด</td><td>~20–50 บาท</td><td>ไฟสถานะ (ทดสอบมอเตอร์ด้วย LED ได้)</td></tr>
+      <tr><td>10</td><td>สมาร์ตโฟน (Android/iOS)</td><td>1</td><td>—</td><td>ใช้แอป <b>ESP-Drone</b> บังคับโดรน (หรือใช้คอมพิวเตอร์ + cflib)</td></tr>
+      <tr><td>11</td><td>เครื่องมือ: หัวแร้ง, มัลติมิเตอร์, ไขควง</td><td>ชุด</td><td>—</td><td>สำหรับประกอบ/ตรวจเช็ค (ห้องเรียนใช้ร่วมกันได้)</td></tr>
+      <tr><td colspan="5" style="text-align:center" class="muted">รวมโดยประมาณ (ไม่รวมเครื่องมือ/โทรศัพท์): <b>~500–1,200 บาท/ชุด</b></td></tr>
+    </table>
+  </div>
+
+  <h3>3.2 แผนภาพการต่อวงจร</h3>
+  <div class="diagram">
+    <svg viewBox="0 0 860 420" width="860" height="420" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,sans-serif">
+      <defs><marker id="ar4" markerWidth="7" markerHeight="7" refX="5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#8b98a9"/></marker></defs>
+      <!-- ESP32 -->
+      <rect x="280" y="40" width="300" height="150" rx="14" fill="#161b22" stroke="#58a6ff" stroke-width="2"/>
+      <text x="430" y="70" text-anchor="middle" fill="#58a6ff" font-size="16" font-weight="700">ESP32-S3 SuperMini</text>
+      <g font-size="12" fill="#e6edf3">
+        <text x="300" y="100">GPIO8 ─── SDA</text><text x="300" y="120">GPIO9 ─── SCL</text>
+        <text x="300" y="140">GPIO13 ─ INT (IMU)</text>
+        <text x="300" y="160">GPIO2 ─ LED เขียว</text><text x="300" y="176">GPIO11 ─ LED น้ำเงิน · GPIO43 ─ LED แดง</text>
+        <text x="430" y="100" fill="#d29922">GPIO4 ─ M1</text><text x="430" y="118" fill="#d29922">GPIO5 ─ M2</text>
+        <text x="430" y="136" fill="#d29922">GPIO6 ─ M3</text><text x="430" y="154" fill="#d29922">GPIO7 ─ M4</text>
+      </g>
+      <!-- IMU -->
+      <rect x="40" y="240" width="200" height="110" rx="12" fill="#161b22" stroke="#bc8cff" stroke-width="2"/>
+      <text x="140" y="265" text-anchor="middle" fill="#bc8cff" font-size="14" font-weight="700">โมดูล IMU (0x68)</text>
+      <g font-size="12" fill="#e6edf3">
+        <text x="55" y="290">VCC → 3V3</text><text x="55" y="308">GND → GND</text>
+        <text x="55" y="326">SDA → GPIO8</text><text x="55" y="344">SCL → GPIO9</text>
+      </g>
+      <line x1="300" y1="106" x2="242" y2="300" stroke="#8b98a9" stroke-width="1.5" marker-end="url(#ar4)" stroke-dasharray="4,3"/>
+      <!-- Motors -->
+      <g font-size="12">
+        <rect x="520" y="240" width="120" height="34" rx="8" fill="#1c2230" stroke="#d29922"/><text x="580" y="262" text-anchor="middle" fill="#d29922">MOSFET M1</text>
+        <rect x="680" y="240" width="120" height="34" rx="8" fill="#1c2230" stroke="#d29922"/><text x="740" y="262" text-anchor="middle" fill="#d29922">MOSFET M2</text>
+        <rect x="520" y="310" width="120" height="34" rx="8" fill="#1c2230" stroke="#d29922"/><text x="580" y="332" text-anchor="middle" fill="#d29922">MOSFET M3</text>
+        <rect x="680" y="310" width="120" height="34" rx="8" fill="#1c2230" stroke="#d29922"/><text x="740" y="332" text-anchor="middle" fill="#d29922">MOSFET M4</text>
+        <line x1="445" y1="108" x2="518" y2="257" stroke="#8b98a9" stroke-width="1.5" marker-end="url(#ar4)" stroke-dasharray="4,3"/>
+        <line x1="445" y1="126" x2="678" y2="257" stroke="#8b98a9" stroke-width="1.5" marker-end="url(#ar4)" stroke-dasharray="4,3"/>
+        <line x1="445" y1="144" x2="518" y2="327" stroke="#8b98a9" stroke-width="1.5" marker-end="url(#ar4)" stroke-dasharray="4,3"/>
+        <line x1="445" y1="162" x2="678" y2="327" stroke="#8b98a9" stroke-width="1.5" marker-end="url(#ar4)" stroke-dasharray="4,3"/>
+        <text x="600" y="385" text-anchor="middle" fill="#f85149">มอเตอร์แต่ละตัวต่อกับ MOSFET → แบตเตอรี่ (GND ร่วมกับ ESP32)</text>
+      </g>
+    </svg>
+    <figcaption>แผนภาพการต่อวงจรอย่างง่าย — สัญญาณ PWM จาก GPIO 4–7 ไปยังเกตของ MOSFET ต่อโหลดมอเตอร์, IMU ต่อผ่าน I2C (SDA=8, SCL=9)</figcaption>
+  </div>
+
+  <!--
+    วิธีเพิ่มรูปภาพ:
+    1) วางไฟล์รูปในโฟลเดอร์ images/ (เชน D:\drone_1\teaching_materials\images\)
+    2) คัดลอกโค้ดตัวอยางขางลาง ใสชื่อไฟลจริง แลววางในตำแหนงที่ตองการ:
+
+    <figure class="photo">
+      <img src="images/ชื่อไฟล์.jpg" alt="คำอธิบายรูป" loading="lazy">
+      <figcaption>คำอธิบายใต้รูป</figcaption>
+    </figure>
+
+    รองรับ: jpg / png / gif / webp — ควรย่อไฟล์ใหเหลือประมาณ 200-800KB เพือหนาโหลดเร็ว
+  -->
+
+  <figure class="photo empty">📷 ตรงนี้ใส่รูปโดรนที่ประกอบเสร็จแล้วได้ (วางไฟล์ใน images/ แล้วเปลี่ยนแท็กนี้เป็น &lt;img src="images/ชื่อไฟล์.jpg"&gt;)</figure>
+
+  <div class="callout danger"><b>⚠️ ความปลอดภัยก่อนจ่ายไฟ</b> เช็คให้ชัวร์: ขั้วไฟไม่สลับ · ไม่มีไฟฟ้าลัดวงจร · ใบพัดยังไม่ใส่ตอนทดสอบ · ต่อแบตเตอรี่เป็นลำดับสุดท้าย · ควรถอดใบพัดทุกครั้งที่ทดสอบซอฟต์แวร์</div>
+
+  <h3>3.3 ขั้นตอนการประกอบ</h3>
+  <ol class="steps">
+    <li><b>เตรียมโครงและติดตั้งมอเตอร์</b> — ยึดมอเตอร์ 4 ตัวเข้ากับแขนโครงตามตำแหน่ง X-quad (M1 หน้า-ซ้าย, M2 ขวา, M3 หลัง, M4 ซ้าย) ยังไม่ใส่ใบพัด</li>
+    <li><b>ต่อวงจรจ่ายไฟมอเตอร์</b> — มอเตอร์แต่ละตัวต่อผ่าน MOSFET (Drain→มอเตอร์, Source→GND, Gate→GPIO 4–7) พร้อมไดโอดคร่อมกัน back-EMF</li>
+    <li><b>ต่อโมดูล IMU ผ่าน I2C</b> — VCC→3V3, GND→GND, SDA→GPIO8, SCL→GPIO9 (ลองต่อ INT→GPIO13 ด้วย ถ้ามี)</li>
+    <li><b>ต่อ LED สถานะ</b> — LED เขียว=GPIO2, น้ำเงิน=GPIO11, แดง=GPIO43 (ผ่าน R 330Ω อนุกรม)</li>
+    <li><b>ต่อแบตเตอรี่/แหล่งจ่ายไฟ</b> — ตรวจแรงดันให้ถูกต้อง แล้วต่อเป็นลำดับสุดท้าย</li>
+    <li><b>ตรวจเช็คด้วยมัลติมิเตอร์</b> — วัด 3V3, GND, ตรวจไม่มีลัดวงจร ก่อนเสียบ USB เข้าคอมพิวเตอร์</li>
+    <li><b>ใส่ใบพัดให้ถูกทิศ</b> — M1/M3 = CW, M2/M4 = CCW (ดูเครื่องหมายบนใบพัด) — ใส่ตอนจะบินจริงเท่านั้น</li>
+  </ol>
+
+  <h3>3.4 ตารางขา GPIO (ของระบบที่ใช้จริง)</h3>
+  <div class="pinmap">
+    <div class="pin motor"><div class="p">MOTOR 1</div><div class="v">GPIO 4</div><div class="d">มอเตอร์หน้า-ซ้าย (CW)</div></div>
+    <div class="pin motor"><div class="p">MOTOR 2</div><div class="v">GPIO 5</div><div class="d">มอเตอร์ขวา (CCW)</div></div>
+    <div class="pin motor"><div class="p">MOTOR 3</div><div class="v">GPIO 6</div><div class="d">มอเตอร์หลัง (CW)</div></div>
+    <div class="pin motor"><div class="p">MOTOR 4</div><div class="v">GPIO 7</div><div class="d">มอเตอร์ซ้าย (CCW)</div></div>
+    <div class="pin i2c"><div class="p">I2C SDA</div><div class="v">GPIO 8</div><div class="d">IMU data</div></div>
+    <div class="pin i2c"><div class="p">I2C SCL</div><div class="v">GPIO 9</div><div class="d">IMU clock (400 kHz)</div></div>
+    <div class="pin i2c"><div class="p">MPU INT</div><div class="v">GPIO 13</div><div class="d">อินเทอร์รัปต์ IMU</div></div>
+    <div class="pin led"><div class="p">LED เขียว</div><div class="v">GPIO 2</div><div class="d">ไฟสถานะ</div></div>
+    <div class="pin led"><div class="p">LED น้ำเงิน</div><div class="v">GPIO 11</div><div class="d">ไฟสถานะ</div></div>
+    <div class="pin led"><div class="p">LED แดง</div><div class="v">GPIO 43</div><div class="d">ไฟสถานะ</div></div>
+  </div>
+  <div class="callout info"><b>💡 เทคนิคจากประสบการณ์จริง</b> บอร์ด SuperMini เขียนเลขขาไว้ = หมายเลข GPIO โดยตรง และ clone IMU มักไม่มีตัวต้านทาน pullup ภายนอก → ต้องเปิด pullup ภายในในเฟิร์มแวร์ (ทำไว้แล้วในโค้ด) ไม่งั้นค่า accel จะอ่านได้ 0</div>
+
+  <h3>3.5 Checklist ก่อนเปิดเครื่อง</h3>
+  <ul class="check">
+    <li>ต่อไฟถูกขั้ว ไม่สลับ +/-</li>
+    <li>ไม่มีไฟฟ้าลัดวงจร (วัดด้วยมัลติมิเตอร์)</li>
+    <li>สาย SDA/SCL/VCC/GND ของ IMU แน่นหนา (ปัญหาสายหลวม = เซนเซอร์หายจากบัสบ่อย)</li>
+    <li>ใบพัดยังไม่ใส่ตอนทดสอบซอฟต์แวร์</li>
+    <li>มอเตอร์แต่ละตัวต่อกับ GPIO ถูกตัว (M1=4, M2=5, M3=6, M4=7)</li>
+    <li>มีแหล่งจ่ายไฟ/แบตเตอรี่พร้อม และรู้แรงดันที่ถูกต้อง</li>
+  </ul>
+</section>
+
+<!-- ================= RF / ANTENNA ================= -->
+<section id="rf">
+  <h2><span class="num">📡</span> RF / เสาอากาศตอนประกอบ</h2>
+  <p class="lead">ปัญหาเจอบ่อยมาก: <b>โดรนอยู่นอก PCB แล้ว WiFi เจอ พอติดลง PCB แล้ว WiFi หาย</b> — สาเหตุหลักไม่ใช่ซอฟต์แวร์ แต่คือ <b>เสาอากาศถูก PCB บัง (antenna detuning)</b></p>
+
+  <div class="callout danger"><b>⚠️ อาการที่บ่งชี้</b> boot log ขึ้น <code>wifi_init_softap complete</code> (ซอฟต์แวร์ WiFi ทำงาน) แต่สแกนหา SSID ไม่เจอแม้อยู่ใกล้ ๆ · เอาบอร์ดออกจาก PCB แล้วเจอทันที</div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 780 270" width="780" height="270" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,sans-serif">
+      <!-- WRONG -->
+      <text x="165" y="40" text-anchor="middle" font-size="15" fill="#f85149" font-weight="700">✕ ผิด — เสาอากาศทับ PCB</text>
+      <rect x="30"  y="60" width="270" height="130" rx="8" fill="#161b22" stroke="#8b98a9"/>
+      <g stroke="#2d3748" stroke-width="2">
+        <line x1="30" y1="90" x2="300" y2="90"/><line x1="30" y1="120" x2="300" y2="120"/><line x1="30" y1="150" x2="300" y2="150"/><line x1="30" y1="180" x2="300" y2="180"/>
+      </g>
+      <text x="165" y="205" text-anchor="middle" font-size="12" fill="#8b98a9">GND plane (ทองแดง)</text>
+      <rect x="130" y="80" width="110" height="55" rx="6" fill="#1c2230" stroke="#e6edf3"/>
+      <text x="185" y="103" text-anchor="middle" font-size="11" fill="#e6edf3">โมดูล</text>
+      <rect x="205" y="80" width="35" height="55" fill="url(#hred)" stroke="#f85149"/>
+      <text x="222" y="74" text-anchor="middle" font-size="10" fill="#f85149">เสาอากาศ</text>
+      <text x="165" y="245" text-anchor="middle" font-size="12" fill="#f85149">คลื่นถูกทองแดงดูดซับ → สแกนไม่เจอ</text>
+
+      <!-- CORRECT -->
+      <text x="625" y="40" text-anchor="middle" font-size="15" fill="#3fb950" font-weight="700">✓ ถูก — เสาอากาศพ้นขอบ PCB</text>
+      <rect x="480" y="60" width="270" height="130" rx="8" fill="#161b22" stroke="#8b98a9"/>
+      <g stroke="#2d3748" stroke-width="2">
+        <line x1="480" y1="90" x2="750" y2="90"/><line x1="480" y1="120" x2="750" y2="120"/><line x1="480" y1="150" x2="750" y2="150"/><line x1="480" y1="180" x2="750" y2="180"/>
+      </g>
+      <text x="615" y="205" text-anchor="middle" font-size="12" fill="#8b98a9">GND plane</text>
+      <rect x="610" y="80" width="90" height="55" rx="6" fill="#1c2230" stroke="#e6edf3"/>
+      <text x="655" y="103" text-anchor="middle" font-size="11" fill="#e6edf3">โมดูล</text>
+      <rect x="700" y="80" width="50" height="55" fill="url(#hgrn)" stroke="#3fb950"/>
+      <text x="725" y="74" text-anchor="middle" font-size="10" fill="#3fb950">เสาอากาศ</text>
+      <line x1="750" y1="107" x2="770" y2="107" stroke="#3fb950" stroke-width="2"/>
+      <text x="615" y="245" text-anchor="middle" font-size="12" fill="#3fb950">ลอยเหนืออากาศ → คลื่นแผ่ออกเต็มที่</text>
+
+      <defs>
+        <pattern id="hred" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#f85149" opacity="0.25"/><line x1="0" y1="0" x2="0" y2="6" stroke="#f85149" stroke-width="2"/></pattern>
+        <pattern id="hgrn" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#3fb950" opacity="0.25"/><line x1="0" y1="0" x2="0" y2="6" stroke="#3fb950" stroke-width="2"/></pattern>
+      </defs>
+    </svg>
+    <figcaption>เสาอากาศ PCB ต้องลอยพ้นขอบบอร์ด อย่าให้ทับ GND plane หรือมีสายไฟ/โลหะใกล้</figcaption>
+  </div>
+
+  <h3>กฎ 4 ข้อ สำหรับ RF ให้ดี</h3>
+  <div class="grid g2">
+    <div class="card"><h4>1️⃣ เสาอากาศพ้นขอบบอร์ด</h4><p>ย้ายโมดูลให้ส่วนเสาอากาศยื่นเลยขอบ PCB (ดีที่สุด) หรือกันพื้นที่ทองแดงใต้เสาอากาศ ~10×5mm ขึ้นไป</p></div>
+    <div class="card"><h4>2️⃣ ห้ามสายไฟพาด</h4><p>สาย USB / สายมอเตอร์ / สายแบตเตอรี่ อย่าให้พาดหรือวนใกล้เสาอากาศ — สายไฟทำตัวเป็นเสาอากาศรบกวน</p></div>
+    <div class="card"><h4>3️⃣ ไม่มีโลหะบัง</h4><p>น็อต เสา เฟรมโลหะ ตัวเก็บประจุ ต้องห่างจากเสาอากาศอย่างน้อย ~1 ซม.</p></div>
+    <div class="card"><h4>4️⃣ แหล่งจ่ายไฟนิ่ง</h4><p>ไฟเลี้ยง ESP32 ต้องสะอาด (ตัวเก็บประจุกรอง 100µF + 100nF ใกล้ VCC) — ไฟตก/มี noise ทำให้ RF อ่อน</p></div>
+  </div>
+
+  <h3>ทดสอบยืนยันใน 1 นาที</h3>
+  <ol class="steps">
+    <li>ยกโมดูลขึ้นจาก PCB ~1 ซม. (ให้เสาอากาศลอยพ้นบอร์ด)</li>
+    <li>สแกน WiFi ด้วยโทรศัพท์หรือ <code>netsh wlan show networks</code></li>
+    <li>เจอ <code>ESP-DRONE_XXXXXXXXXXXX</code> ทันที = ยืนยันว่าเสาอากาศถูกบัง → จัดตำแหน่งตามกฎข้อ 1–4</li>
+  </ol>
+</section>
+
+<!-- ================= SOFTWARE ================= -->
+<section id="software">
+  <h2><span class="num">4</span> ขั้นตอนการสร้าง Software</h2>
+  <p class="lead">ใช้เฟิร์มแวร์ <b>ESP-FLY (Co-Create_ESP-FLY)</b> ซึ่งเป็น Crazyflie port ลง ESP-IDF v5.0 — ขั้นตอน: ติดตั้ง toolchain → ตั้งค่าขา → build → flash → ทดสอบ</p>
+
+  <h3>4.1 ติดตั้งสภาพแวดล้อม (ESP-IDF v5.0)</h3>
+  <ol class="steps">
+    <li><b>ติดตั้ง ESP-IDF</b> — ผ่าน Espressif IDE หรือ git clone แล้วรัน <code>install.ps1</code> ที่ <code>C:\Users\&lt;user&gt;\esp\esp-idf</code></li>
+    <li><b>เปิดใช้งาน environment</b> — ทุกครั้งที่เปิด terminal ใหม่ ต้องรัน:
+<pre><span class="tag">PowerShell</span><span class="k">&amp;</span> <span class="s">'C:\Users\Notebook\esp\esp-idf\export.ps1'</span> <span class="n">|</span> <span class="f">Out-Null</span></pre>
+    </li>
+    <li><b>ดาวน์โหลดเฟิร์มแวร์</b> — <code>git clone https://github.com/Seeed-Projects/Co-Create_ESP-FLY</code> โปรเจกต์หลักอยู่ที่ <code>Firmware/esp-drone</code></li>
+  </ol>
+
+  <h3>4.2 ตั้งค่าขา GPIO (Kconfig)</h3>
+  <p>ขาทั้งหมดตั้งค่าได้จากเมนู <code>menuconfig</code> หรือแก้ไฟล์ <code>sdkconfig</code> โดยตรง (ค่าในเครื่องนี้ตั้งไว้แล้ว):</p>
+<pre><span class="tag">sdkconfig (ค่าใช้งานจริง)</span><span class="cmt"># I2C0 (บัส IMU)</span>
+<span class="n">CONFIG_I2C0_PIN_SDA</span>=<span class="s">8</span>    <span class="n">CONFIG_I2C0_PIN_SCL</span>=<span class="s">9</span>
+<span class="cmt"># มอเตอร์ (brushed 715)</span>
+<span class="n">CONFIG_MOTOR01</span>=<span class="s">4</span>  <span class="n">CONFIG_MOTOR02</span>=<span class="s">5</span>
+<span class="n">CONFIG_MOTOR03</span>=<span class="s">6</span>  <span class="n">CONFIG_MOTOR04</span>=<span class="s">7</span>
+<span class="cmt"># LED</span>
+<span class="n">CONFIG_LED_GREEN</span>=<span class="s">2</span>  <span class="n">CONFIG_LED_BLUE</span>=<span class="s">11</span>  <span class="n">CONFIG_LED_RED</span>=<span class="s">43</span>
+<span class="cmt"># ขาอินเทอร์รัปต์ IMU</span>
+<span class="n">CONFIG_MPU_PIN_INT</span>=<span class="s">13</span></pre>
+  <div class="callout warn"><b>⚠️ ระวัง</b> ถ้าใช้ <code>menuconfig</code> reset ค่า default จะต่างจากค่าที่ตั้งไว้ — ต้องกรอกค่าใหม่ทุกครั้ง ควรแก้ <code>sdkconfig</code> โดยตรงหรือจดค่าไว้</div>
+
+  <h3>4.3 Build และ Flash</h3>
+  <ol class="steps">
+    <li><b>Build</b> — ต้องปิด <code>idf.py monitor</code> ที่ค้างอยู่ก่อน (ไม่งั้นพอร์ตติด):
+<pre><span class="tag">PowerShell</span><span class="n">cd</span> <span class="s">'D:\drone_1\Co-Create_ESP-FLY\Firmware\esp-drone'</span>
+<span class="n">idf.py</span> <span class="f">build</span></pre>
+    </li>
+    <li><b>Flash ลงบอร์ด</b> — ต่อ USB แล้วรัน (COM3 คือพอร์ตอนุกรมของบอร์ด):
+<pre><span class="tag">PowerShell</span><span class="n">idf.py</span> <span class="n">-p</span> <span class="s">COM3</span> <span class="f">flash</span></pre>
+    </li>
+    <li><b>ดู log / monitor</b> — ตรวจ boot:
+<pre><span class="tag">PowerShell</span><span class="n">idf.py</span> <span class="n">-p</span> <span class="s">COM3</span> <span class="f">monitor</span></pre>
+    </li>
+  </ol>
+  <p>เมื่อ boot สำเร็จ ควรเห็น log ประมาณนี้ (ถ้าเห็น <code>Ready to fly.</code> = ผ่าน):</p>
+<pre><span class="tag">boot log</span><span class="n">MPU6050 WHO_AM_I=0x38</span>
+<span class="n">SENSORS: MPU6050 I2C connection [OK].</span>
+<span class="n">STAB: Ready to fly.</span></pre>
+
+  <h3>4.3.1 Flash ผ่านเบราว์เซอร์ (ESP-Launchpad) — เหมาะสำหรับนักเรียน ⭐</h3>
+  <p>วิธีนี้ <b>ไม่ต้องติดตั้ง ESP-IDF</b> — นักเรียน flash ผ่านเบราว์เซอร์ (WebSerial) ได้เลย เหลือแค่ 3 คลิก และใช้เฟิร์มแวร์ <b><code>merged.bin</code> ไฟล์เดียว</b> (รวม bootloader + partition table + app แล้ว — flash ที่ address <code>0x0</code>) ผ่านการทดสอบแล้วว่าบูทได้ <code>Ready to fly.</code> เหมือน flash 3 ไฟล์แยก</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h4>🌐 แบบ One-click (แนะนำสำหรับห้องเรียน)</h4>
+      <ol>
+        <li>เปิดหน้า <a href="https://espressif.github.io/esp-launchpad/" target="_blank" rel="noopener"><b>ESP-Launchpad</b></a> (URL ที่ครูแจก หรือลิงก์นี้) ใน <b>Chrome/Edge</b></li>
+        <li>เสียบสาย USB (สายข้อมูล) เข้าบอร์ด</li>
+        <li>กด <b>Connect</b> → เลือกพอร์ต <code>USB Serial Device (COMxx)</code></li>
+        <li>กด <b>Flash</b> → รอจนจบ (บาร์เต็ม)</li>
+        <li><b>ถอด-เสียบ USB ใหม่</b> (ปลดล็อก IMU) → เสร็จพร้อมบิน!</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h4>🛠️ แบบ DIY (สำรอง — ไม่ต้อง host ไฟล์)</h4>
+      <ol>
+        <li>เปิด <a href="https://espressif.github.io/esp-launchpad/" target="_blank" rel="noopener">espressif.github.io/esp-launchpad/</a> → แท็บ <b>DIY</b></li>
+        <li>ตั้ง Baud rate = <b>115200</b> ⚠️ (ค่าเริ่ม 460800 อาจไม่ผ่านกับบอร์ด USB ไม่เสถียร)</li>
+        <li>Connect → เลือกไฟล์ <code>merged.bin</code> + address <code>0x0</code></li>
+        <li>Flash → ถอด-เสียบ USB ใหม่</li>
+      </ol>
+    </div>
+  </div>
+  <div class="callout warn"><b>⚠️ ข้อควรรู้</b>
+    <ul>
+      <li>ต้องใช้ <b>Chrome/Edge</b> (WebSerial API — ทำงานเฉพาะหน้า HTTPS เท่านั้น)</li>
+      <li>บอร์ด ESP32-S3 SuperMini เป็น native USB (VID <code>303A</code>) — ESP-Launchpad รองรับโดยตรง ไม่ต้องกด BOOT</li>
+      <li>สาย USB ต้องเป็นสาย <b>ข้อมูล</b> ไม่ใช่สายชาร์จอย่างเดียว</li>
+      <li>หลัง flash ทุกครั้งต้อง <b>ถอด-เสียบ USB ใหม่</b> (IMU clone latch — เหมือนการ flash ปกติ)</li>
+    </ul>
+  </div>
+  <p>วิธีสร้าง <code>merged.bin</code> ใหม่ (หลัง build เฟิร์มแวร์อัปเดต):</p>
+<pre><span class="tag">PowerShell — สร้าง merged.bin</span><span class="n">python</span> <span class="s">...\esptool.py</span> <span class="n">--chip</span> <span class="s">esp32s3</span> <span class="f">merge_bin</span> <span class="n">-o</span> <span class="s">merged.bin</span> <span class="n">--flash_mode dio --flash_size 4MB --flash_freq 80m</span> <span class="s">0x0</span> <span class="s">build\bootloader\bootloader.bin</span> <span class="s">0x8000</span> <span class="s">build\partition_table\partition-table.bin</span> <span class="s">0x10000</span> <span class="s">build\ESPDrone.bin</span></pre>
+
+  <h3>4.4 เชื่อมต่อ WiFi และแอปควบคุม</h3>
+  <div class="grid g2">
+    <div class="card">
+      <h4>📶 รายละเอียด WiFi</h4>
+      <ul>
+        <li>SSID: <code>ESP-DRONE_XXXXXXXXXXXX</code> (ตาม MAC ของบอร์ด)</li>
+        <li>Password: <code>12345678</code></li>
+        <li>โดรน IP: <code>192.168.43.42</code> · พอร์ต UDP: <code>2390</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>📱 วิธีเชื่อมต่อ</h4>
+      <ol>
+        <li>เปิด WiFi คอมพิวเตอร์/โทรศัพท์ เลือก SSID โดรน</li>
+        <li>เปิดแอป (เช่น ESP-Drone app / Crazyflie client) หรือใช้ Python cflib</li>
+        <li>ส่งคำสั่ง throttle/roll/pitch/yaw → โดรนตอบสนอง</li>
+      </ol>
+    </div>
+  </div>
+  <div class="callout info"><b>💡 Windows อาจเด้งกลับ WiFi บ้าน</b> — ถ้าคอมฯ หลุดจากการ์ดโดรน ให้ลบโปรไฟล์ WiFi บ้าน หรือใช้สายแลนต่ออินเทอร์เน็ต แล้วเชื่อม WiFi โดรนไว้แทน</div>
+
+  <h3>4.4.1 ควบคุมด้วยแอปมือถือ (ESP-Drone app) 📱</h3>
+  <p>วิธีบังคับที่ง่ายที่สุด — ใช้สมาร์ตโฟน (Android/iOS) ต่อ WiFi โดรน แล้วบังคับด้วยจอยสติ๊กเสมือนบนหน้าจอ โดรน DIY ของเราใช้โปรโตคอลเดียวกันกับโดรน official (WiFi + UDP + CRTP) จึงใช้แอปเดียวกันได้</p>
+  <div class="grid g2">
+    <div class="card">
+      <h4>⬇️ ดาวน์โหลดแอป</h4>
+      <ul>
+        <li>ค้นหา <b>"ESP-Drone"</b> ใน <b>Play Store</b> (Android) หรือ <b>App Store</b> (iOS) — ผู้พัฒนา: Espressif</li>
+        <li>ข้อมูล/ลิงก์แอปเพิ่มเติม: <a href="https://github.com/espressif/esp-drone" target="_blank" rel="noopener">github.com/espressif/esp-drone</a></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>🔗 เชื่อมต่อ</h4>
+      <ol>
+        <li>เปิด WiFi โทรศัพท์ → ต่อ <code>ESP-DRONE_XXXXXXXXXXXX</code> รหัส <code>12345678</code></li>
+        <li>เปิดแอป ESP-Drone → กด <b>Connect</b></li>
+        <li>สถานะเขียว / ไฟ LED โดรนกระพริบ = เชื่อมต่อแล้ว</li>
+      </ol>
+    </div>
+  </div>
+  <h4>🎮 บังคับบิน (Virtual joystick)</h4>
+  <div class="grid g2">
+    <div class="card"><h4>🕹️ จอยซ้าย</h4><p>ดันขึ้น-ลง = <b>Throttle</b> (ความสูง) · เลื่อนซ้าย-ขวา = <b>Yaw</b> (หันซ้าย/ขวา)</p></div>
+    <div class="card"><h4>🕹️ จอยขวา</h4><p>ดันขึ้น-ลง = <b>Pitch</b> (ก้ม/เงย — ไปหน้า/หลัง) · เลื่อนซ้าย-ขวา = <b>Roll</b> (เอียงซ้าย/ขวา)</p></div>
+  </div>
+  <div class="photogrid">
+    <figure class="photo">
+      <img src="https://espressif-docs.readthedocs-hosted.com/projects/espressif-esp-drone/en/latest/_images/espdrone_app_android_en.png" alt="แอป ESP-Drone Android — หน้าจอบังคับบิน" loading="lazy">
+      <figcaption>แอป ESP-Drone (Android) — หน้าจอบังคับบินด้วยจอยเสมือน <span class="muted">(ภาพจาก docs ทางการ Espressif)</span></figcaption>
+    </figure>
+    <figure class="photo">
+      <img src="https://espressif-docs.readthedocs-hosted.com/projects/espressif-esp-drone/en/latest/_images/android_app_download.png" alt="QR ดาวน์โหลดแอป ESP-Drone" loading="lazy">
+      <figcaption>QR ดาวน์โหลดแอป ESP-Drone (Android) <span class="muted">(ภาพจาก docs ทางการ Espressif)</span></figcaption>
+    </figure>
+  </div>
+  <ol class="steps">
+    <li><b>ปลดล็อกมอเตอร์ (arm)</b> — ถ้าโดรนไม่ตอบสนอง ให้ลองดัน throttle ลงสุดค้าง 1–2 วินาที (หลายแอปใช้วิธีนี้ก่อนบิน)</li>
+    <li><b>ดัน throttle ขึ้นช้า ๆ</b> — โดรนเริ่มยกตัว ค่อย ๆ ปรับจนลอยนิ่ง</li>
+    <li>บังคับ roll/pitch/yaw <b>เบา ๆ</b> — โดรน DIY ขนาดเล็กไวต่อการสั่ง อย่ากระตุกแรง ๆ</li>
+    <li>ลงจอด — ลด throttle ช้า ๆ จนแตะพื้น แล้วทำท่าล็อก (disarm)</li>
+  </ol>
+
+  <h4>🎛️ ปรับจูนบนมือถือ (App Settings)</h4>
+  <p>แอป ESP-Drone มีเมนูตั้งค่าการบิน (Settings) ที่ปรับได้โดยไม่ต้องแตะเฟิร์มแวร์ — เหมาะสำหรับปรับให้โดรนลอยนิ่ง/ตอบสนองตามต้องการ:</p>
+  <div class="tablewrap">
+    <table>
+      <tr><th>ตั้งค่า</th><th>ค่าเริ่มต้น</th><th>ใช้ทำอะไร</th></tr>
+      <tr><td>Mode</td><td>Mode2</td><td>รูปแบบจอย (Mode1/2/3/4) — Mode2: จอยซ้าย = throttle+yaw, จอยขวา = pitch+roll</td></tr>
+      <tr><td>Deadzone</td><td>0.2</td><td>โซนตายของจอย — เพิ่มถ้าจอยขยับเอง/ไวเกินไป</td></tr>
+      <tr><td>Roll trim / Pitch trim</td><td>0.0</td><td>ชดเชยโดรนลอยเอียง/ลอยถอย — ปรับจนลอยนิ่งตรง</td></tr>
+      <tr><td>max roll/pitch angle</td><td>15°</td><td>มุมเอียงสูงสุด — ลดลงถ้าโดรนเอียงแรงเกินไป</td></tr>
+      <tr><td>max yaw angle</td><td>90°</td><td>ความเร็วหันซ้าย/ขวาสูงสุด</td></tr>
+      <tr><td>max / min thrust</td><td>90% / 25%</td><td>จำกัดกำลังมอเตอร์ — ลด max thrust สำหรับมือใหม่/บินในร่ม</td></tr>
+      <tr><td>X-Mode</td><td>true</td><td>โครงโดรนแบบ X-quad (ตรงกับเฟรมของเรา)</td></tr>
+    </table>
+  </div>
+  <figure class="photo" style="max-width:340px; margin-left:auto; margin-right:auto;">
+    <svg viewBox="0 0 320 640" width="320" height="640" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,sans-serif">
+      <rect x="8" y="8" width="304" height="624" rx="26" fill="#161b22" stroke="#58a6ff" stroke-width="2"/>
+      <text x="160" y="42" text-anchor="middle" fill="#58a6ff" font-size="15" font-weight="700">⚙️ App Settings</text>
+      <line x1="28" y1="56" x2="292" y2="56" stroke="#2d3748" stroke-width="1"/>
+      <text x="34" y="80" fill="#8b98a9" font-size="11">FLIGHT CONTROL</text>
+      <g font-size="14">
+        <text x="34" y="112" fill="#e6edf3">Mode</text>
+        <text x="286" y="112" text-anchor="end" fill="#3fb950">Mode2</text>
+        <line x1="28" y1="124" x2="292" y2="124" stroke="#21262d" stroke-width="1"/>
+
+        <text x="34" y="158" fill="#e6edf3">Deadzone</text>
+        <line x1="150" y1="154" x2="250" y2="154" stroke="#3fb950" stroke-width="2"/>
+        <circle cx="172" cy="154" r="5" fill="#3fb950"/>
+        <text x="286" y="158" text-anchor="end" fill="#3fb950">0.2</text>
+        <line x1="28" y1="170" x2="292" y2="170" stroke="#21262d" stroke-width="1"/>
+
+        <text x="34" y="204" fill="#e6edf3">Roll trim</text>
+        <line x1="150" y1="200" x2="250" y2="200" stroke="#d29922" stroke-width="2"/>
+        <circle cx="200" cy="200" r="5" fill="#d29922"/>
+        <text x="286" y="204" text-anchor="end" fill="#3fb950">0.0</text>
+        <line x1="28" y1="216" x2="292" y2="216" stroke="#21262d" stroke-width="1"/>
+
+        <text x="34" y="250" fill="#e6edf3">Pitch trim</text>
+        <line x1="150" y1="246" x2="250" y2="246" stroke="#d29922" stroke-width="2"/>
+        <circle cx="200" cy="246" r="5" fill="#d29922"/>
+        <text x="286" y="250" text-anchor="end" fill="#3fb950">0.0</text>
+        <line x1="28" y1="262" x2="292" y2="262" stroke="#21262d" stroke-width="1"/>
+
+        <text x="34" y="296" fill="#e6edf3">Advanced flight control</text>
+        <rect x="252" y="280" width="34" height="18" rx="9" fill="#3fb950"/>
+        <circle cx="280" cy="289" r="7" fill="#0d1117"/>
+        <line x1="28" y1="308" x2="292" y2="308" stroke="#21262d" stroke-width="1"/>
+
+        <text x="34" y="342" fill="#e6edf3">Max roll/pitch angle</text>
+        <line x1="170" y1="338" x2="250" y2="338" stroke="#58a6ff" stroke-width="2"/>
+        <circle cx="190" cy="338" r="5" fill="#58a6ff"/>
+        <text x="286" y="342" text-anchor="end" fill="#3fb950">15°</text>
+        <line x1="28" y1="354" x2="292" y2="354" stroke="#21262d" stroke-width="1"/>
+
+        <text x="34" y="388" fill="#e6edf3">Max yaw angle</text>
+        <line x1="170" y1="384" x2="250" y2="384" stroke="#58a6ff" stroke-width="2"/>
+        <circle cx="250" cy="384" r="5" fill="#58a6ff"/>
+        <text x="286" y="388" text-anchor="end" fill="#3fb950">90°</text>
+        <line x1="28" y1="400" x2="292" y2="400" stroke="#21262d" stroke-width="1"/>
+
+        <text x="34" y="434" fill="#e6edf3">Max thrust</text>
+        <line x1="170" y1="430" x2="250" y2="430" stroke="#f85149" stroke-width="2"/>
+        <circle cx="242" cy="430" r="5" fill="#f85149"/>
+        <text x="286" y="434" text-anchor="end" fill="#3fb950">90%</text>
+        <line x1="28" y1="446" x2="292" y2="446" stroke="#21262d" stroke-width="1"/>
+
+        <text x="34" y="480" fill="#e6edf3">Min thrust</text>
+        <line x1="170" y1="476" x2="250" y2="476" stroke="#f85149" stroke-width="2"/>
+        <circle cx="190" cy="476" r="5" fill="#f85149"/>
+        <text x="286" y="480" text-anchor="end" fill="#3fb950">25%</text>
+        <line x1="28" y1="492" x2="292" y2="492" stroke="#21262d" stroke-width="1"/>
+
+        <text x="34" y="526" fill="#e6edf3">X-Mode</text>
+        <rect x="252" y="510" width="34" height="18" rx="9" fill="#3fb950"/>
+        <circle cx="280" cy="519" r="7" fill="#0d1117"/>
+        <line x1="28" y1="538" x2="292" y2="538" stroke="#21262d" stroke-width="1"/>
+
+        <text x="34" y="572" fill="#8b98a9" font-size="12">จูน PID gain → ต้องใช้ cfclient (PC)</text>
+        <text x="34" y="592" fill="#8b98a9" font-size="12">หัวข้อ 4.5 · แก้แบบออนไลน์ ไม่บันทึกถาวร</text>
+      </g>
+    </svg>
+    <figcaption>ภาพประกอบหน้าตั้งค่า (App Settings) ของแอป ESP-Drone — จำลองจากค่าเริ่มต้นตาม docs ทางการ Espressif</figcaption>
+  </figure>
+  <div class="callout info"><b>💡 หมายเหตุ</b> การจูน <b>ค่า PID (P/I/D gain)</b> ไม่ได้อยู่ในแอปมือถือ — ทำผ่าน <b>cfclient บนคอมพิวเตอร์</b> (หัวข้อ 4.5) โดยแก้พารามิเตอร์แบบออนไลน์แล้วดูผลทันที (ค่าไม่ถูกบันทึกถาวร — เหมาะสำหรับทดลอง)</div>
+
+  <div class="callout warn"><b>⚠️ ข้อควรระวังเมื่อใช้โทรศัพท์</b>
+    <ul>
+      <li><b>ปิด Mobile data / WiFi บ้าน</b> ก่อนต่อ — โทรศัพท์อาจสลับกลับเน็ต เพราะ WiFi โดรนไม่มีอินเทอร์เน็ต</li>
+      <li>ระยะ WiFi สั้น (~10–30 ม.) — บินในห้อง/พื้นที่เปิดใกล้ตัว อย่าบินไกลเกินสายตา</li>
+      <li>ถ้า WiFi หลุด โดรนจะหยุดรับคำสั่ง (~500ms) — ต้องค่อย ๆ ลด throttle เสมอ</li>
+      <li>ถอดใบพัดก่อนตอนฝึกซอฟต์แวร์/ทดสอบมอเตอร์ — ใส่ใบพัดเฉพาะตอนพร้อมบินจริง</li>
+      <li>บินในพื้นที่ปลอดภัย และปฏิบัติตามกฎหมายโดรน (ดูหัวข้อ 6)</li>
+    </ul>
+  </div>
+
+  <h3>4.5 ควบคุมด้วย Python (cflib)</h3>
+  <p>ติดตั้ง/ใช้ cflib แล้วเขียนสคริปต์ควบคุม:</p>
+<pre><span class="tag">Python — ต่อ + อ่าน log</span><span class="k">import</span> sys, time
+sys.path.<span class="f">insert</span>(<span class="s">0</span>, <span class="s">r'D:\drone_1\cflib-esplane'</span>)   <span class="cmt"># fork ที่มี UDP driver</span>
+<span class="k">from</span> cflib.crazyflie <span class="k">import</span> Crazyflie
+<span class="k">from</span> cflib.crazyflie.log <span class="k">import</span> LogConfig
+
+URI = <span class="s">'udp://192.168.43.42:2390'</span>
+cf = Crazyflie()
+cf.<span class="f">connected</span>.<span class="f">add_callback</span>(<span class="k">lambda</span> _: print(<span class="s">'CONNECTED'</span>))
+cf.<span class="f">open_link</span>(URI)
+time.sleep(<span class="s">2</span>)
+<span class="cmt"># อ่าน log accel/gyro</span>
+lg = LogConfig(name=<span class="s">'sens'</span>, period_in_ms=<span class="s">50</span>)
+lg.<span class="f">add_variable</span>(<span class="s">'acc.z'</span>, <span class="s">'float'</span>)
+lg.<span class="f">data_received_cb.add_callback</span>(<span class="k">lambda</span> ts,data: print(<span class="s">'acc.z ='</span>, data[<span class="s">'acc.z'</span>]))
+cf.log.<span class="f">add_config</span>(lg); lg.<span class="f">start</span>()</pre>
+
+  <h4>สคริปต์บินเต็มรูปแบบ (ปลดล็อก → ขึ้น → ลอย → ลง)</h4>
+<pre><span class="tag">Python — flight script</span><span class="k">import</span> sys, time
+sys.path.<span class="f">insert</span>(<span class="s">0</span>, <span class="s">r'D:\drone_1\cflib-esplane'</span>)
+<span class="k">from</span> cflib.crazyflie <span class="k">import</span> Crazyflie
+
+URI = <span class="s">'udp://192.168.43.42:2390'</span>
+cf = Crazyflie()
+cf.<span class="f">open_link</span>(URI); time.sleep(<span class="s">2</span>)   <span class="cmt"># รอเชื่อมต่อ</span>
+
+<span class="k">def</span> <span class="f">setpoint</span>(roll=<span class="s">0</span>, pitch=<span class="s">0</span>, yawrate=<span class="s">0</span>, thrust=<span class="s">0</span>):
+    cf.commander.<span class="f">send_setpoint</span>(roll, pitch, yawrate, thrust)
+    time.sleep(<span class="s">0.02</span>)               <span class="cmt"># ส่งทุก ~20ms — ห้ามหยุดเกิน 500ms</span>
+
+setpoint()                              <span class="cmt"># thrust=0 → ปลดล็อก (arm)</span>
+time.sleep(<span class="s">1</span>)
+
+<span class="k">for</span> t <span class="k">in</span> <span class="f">range</span>(<span class="s">0</span>, <span class="s">40001</span>, <span class="s">500</span>):  <span class="cmt"># ค่อย ๆ เพิ่ม thrust 0→40000</span>
+    setpoint(thrust=t)
+time.sleep(<span class="s">2</span>)                       <span class="cmt"># ลอยนิ่ง</span>
+
+<span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(<span class="s">50</span>):               <span class="cmt"># ร่อนหน้า-หลัง เบา ๆ</span>
+    setpoint(pitch=<span class="s">10</span>, thrust=<span class="s">30000</span>)
+    setpoint(pitch=-<span class="s">10</span>, thrust=<span class="s">30000</span>)
+
+<span class="k">for</span> t <span class="k">in</span> <span class="f">range</span>(<span class="s">40000</span>, -<span class="s">1</span>, -<span class="s">500</span>): <span class="cmt"># ค่อย ๆ ลด → ลงจอด</span>
+    setpoint(thrust=t)
+setpoint()                              <span class="cmt"># disarm</span>
+cf.<span class="f">close_link</span>()</pre>
+
+  <h4>อ่าน/ตั้งค่า PID (จูนกลางอากาศ)</h4>
+<pre><span class="tag">Python — param</span><span class="cmt"># อ่านค่า</span>
+kp = cf.param.<span class="f">get_value</span>(<span class="s">'pid_attitude.roll_kp'</span>)
+print(<span class="s">'roll_kp ='</span>, kp)
+
+<span class="cmt"># ตั้งค่า (เช่น เพิ่มความไว)</span>
+cf.param.<span class="f">set_value</span>(<span class="s">'pid_attitude.roll_kp'</span>, <span class="s">4.0</span>)</pre>
+
+  <div class="photogrid">
+    <figure class="photo">
+      <img src="https://raw.githubusercontent.com/bitcraze/crazyflie-clients-python/master/docs/images/cfclient_frontpage.png" alt="cfclient — หน้าจอหลัก" loading="lazy">
+      <figcaption>cfclient (PC) — หน้าจอหลัก Flight Control <span class="muted">(ภาพจาก repo bitcraze/crazyflie-clients-python)</span></figcaption>
+    </figure>
+    <figure class="photo">
+      <img src="https://raw.githubusercontent.com/bitcraze/crazyflie-clients-python/master/docs/images/cfclient_param.png" alt="cfclient — แท็บ Parameter" loading="lazy">
+      <figcaption>cfclient — แท็บ Parameter: อ่าน/ตั้งค่า PID และพารามิเตอร์ <span class="muted">(ภาพจาก repo bitcraze)</span></figcaption>
+    </figure>
+    <figure class="photo">
+      <img src="https://raw.githubusercontent.com/espressif/esp-drone/master/docs/_static/cfclient_pid_tune.png" alt="cfclient — จูน PID ออนไลน์" loading="lazy">
+      <figcaption>cfclient — จูน PID แบบออนไลน์ (เห็นผลทันที ไม่ต้อง flash) <span class="muted">(ภาพจาก repo espressif/esp-drone)</span></figcaption>
+    </figure>
+    <figure class="photo">
+      <img src="https://raw.githubusercontent.com/espressif/esp-drone/master/docs/_static/log_acc.png" alt="cfclient — กราฟ log accel/gyro" loading="lazy">
+      <figcaption>cfclient — กราฟ accel/gyro แบบเรียลไทม์ (Plotter) <span class="muted">(ภาพจาก repo espressif/esp-drone)</span></figcaption>
+    </figure>
+  </div>
+
+  <div class="grid g3">
+    <div class="card"><h4>✈️ ส่งคำสั่งบิน</h4><p><code>cf.commander.send_setpoint(roll, pitch, yawrate, thrust)</code> — ส่งต่อเนื่องทุก ~20ms (ถ้าหยุดเกิน 500ms ระบบจะล็อกไม่รับแรงดัน)</p></div>
+    <div class="card"><h4>📊 อ่านค่าเซนเซอร์</h4><p>ใช้ <code>LogConfig</code> + <code>data_received_cb</code> อ่าน acc/gyro/stabilizer ฯลฯ</p></div>
+    <div class="card"><h4>⚙️ อ่าน/ตั้งค่าพารามิเตอร์</h4><p>ใช้ <code>cf.param.get_value('pid_attitude.roll_kp')</code> และ <code>set_value</code> ปรับจูน PID</p></div>
+  </div>
+
+  <h3>4.6 การปรับแต่งที่จำเป็นสำหรับ clone IMU (ทำไว้แล้วในเฟิร์มแวร์)</h3>
+  <div class="tablewrap">
+    <table>
+      <tr><th>ปัญหา</th><th>สาเหตุ</th><th>การแก้ในเฟิร์มแวร์</th></tr>
+      <tr><td>accel อ่านได้ 0 / ค่าเพี้ยน</td><td>clone IMU ไม่มี pullup ภายนอกบนสาย I2C</td><td>เปิด <code>GPIO_PULLUP_ENABLE</code> ที่บัส I2C0 ใน <code>i2c_drv.c</code></td></tr>
+      <tr><td>ติดค้างที่ "Wait for sensor calibration"</td><td>gyro variance ไม่นิ่งพอ คำนวณ bias ไม่จบ</td><td>เปิด <code>GYRO_BIAS_LIGHT_WEIGHT</code> (เฉลี่ย 1000 ตัวอย่าง)</td></tr>
+      <tr><td>เชื่อมต่อ IMU ไม่ผ่าน (WHO_AM_I 0x00)</td><td>clone คืนค่า WHO_AM_I=0x70 (แปลงเป็น 0x38)</td><td>ยอมรับ <code>0x38</code> ใน <code>mpu6050TestConnection()</code> + retry</td></tr>
+      <tr><td>ค้างที่ data-ready interrupt</td><td>ขา INT ไม่พัลส์บน clone</td><td>ใช้ polling fallback (<code>xSemaphoreTake(..., M2T(2))</code> แล้วอ่านเสมอ)</td></tr>
+      <tr><td>self-test ค้างนาน/ไม่ผ่าน</td><td>factory trim ของ clone ต่างจาก MPU-6050 จริง</td><td>ผ่านถ้า self-test OK หรือ TestConnection OK</td></tr>
+      <tr><td>เซนเซอร์หายหลังกด reset (ไม่ตัดไฟ)</td><td>ปัญหา hardware โมดูล latch ค้างบนบัส</td><td>เพิ่ม I2C bus recovery + retry (ช่วยได้บางส่วน) — แก้จริงต้องถอด-เสียบ USB/เช็คสาย</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ================= TROUBLE ================= -->
+<section id="trouble">
+  <h2><span class="num">5</span> ตารางแก้ปัญหาที่พบบ่อย</h2>
+  <p class="lead">รวมปัญหาที่เจอจริงระหว่างพัฒนา + วิธีตรวจ/แก้</p>
+  <div class="tablewrap">
+    <table>
+      <tr><th>อาการ</th><th>ตรวจอะไรก่อน</th><th>แนวทางแก้</th></tr>
+      <tr><td>ไม่เห็น SSID ของโดรนใน WiFi</td><td>ดู boot log ว่ามี <code>wifi_init_softap complete</code> ไหม</td><td>ถ้า log ขึ้นครบแต่สแกนไม่เจอ → ตรวจ RF/เสาอากาศ (บอร์ด clone บางตัว WiFi เสียจริง — ต้องลองสลับบอร์ด)</td></tr>
+      <tr><td>มอเตอร์/ไฟไม่ขยับเมื่อสั่งจากแอป</td><td>ดู log มี <code>Ready to fly.</code> หรือยัง</td><td>ยังไม่ calibrate gyro จบ (ดูหัวข้อ 4.6) — แก้ด้วย GYRO_BIAS_LIGHT_WEIGHT</td></tr>
+      <tr><td>accel = 0 / NaN ใน log</td><td>ดูค่า <code>accScale</code> และ raw buffer</td><td>เปิด pullup I2C (หัวข้อ 4.6) — ถ้า sensor หายจากบัส ต้องถอด-เสียบ USB</td></tr>
+      <tr><td>เชื่อมต่อ cflib ค้างที่ "Requesting number of memories"</td><td>—</td><td>fork นี้ไม่มี CRTP memory service — patch ใน <code>crazyflie/__init__.py</code> ให้เรียก <code>_mems_updated_cb()</code> ตรง ๆ</td></tr>
+      <tr><td>ส่ง thrust แล้วโดรนไม่ตอบสนอง</td><td>ดูว่าเว้นช่วงส่งนานเกินไหม</td><td>ต้องส่ง setpoint ต่อเนื่องทุก ~20ms (thrust=0 ก่อนเพื่อปลดล็อก แล้วค่อยเพิ่ม) — หยุดเกิน 500ms ระบบล็อกใหม่</td></tr>
+      <tr><td>COM3 เปิดไม่ได้ PermissionError</td><td>มี monitor/โปรแกรมค้างเปิดพอร์ตไหม</td><td>ปิด <code>idf.py monitor</code> / ตัวอ่านพอร์ตอื่น แล้วลองใหม่ ถ้ายังไม่หายให้ถอด-เสียบ USB</td></tr>
+      <tr><td>เห็น boot log ว่า softAP ขึ้นแล้ว แต่สแกน WiFi ไม่เจอ SSID โดรน</td><td>ดูว่า WiFi ของคอมฯ ต่ออยู่ย่าน 5GHz หรือไม่ (การ์ด Realtek 8852BE)</td><td>การ์ดบางรุ่นไม่รายงานเครือข่าย 2.4GHz ขณะต่อ 5GHz อยู่ — ตรวจจาก boot log (<code>wifi_init_softap complete.SSID:ESP-DRONE_...</code>) แล้วสร้าง profile เชื่อมตรงด้วย SSID นั้น ไม่ต้องพึ่งสแกน</td></tr>
+      <tr><td>ค่า vbat ≈ 0</td><td>—</td><td>ปกติเมื่อใช้ไฟจาก USB (ไม่มีแบต) — ไม่ใช่ความผิดปกติ</td></tr>
+    </table>
+  </div>
+
+  <h3>คำสั่ง/สคริปต์ช่วยตรวจ (เครื่องมือที่ใช้จริง)</h3>
+  <div class="grid g3">
+    <div class="card"><h4>🔍 imu_test</h4><p>โปรเจกต์ทดสอบ IMU แบบ standalone อ่าน register + raw accel/gyro เพื่อแยก "เซนเซอร์เสีย" กับ "firmware ผิด"</p></div>
+    <div class="card"><h4>🐍 diag_nan.py</h4><p>สคริปต์ cflib อ่าน acc/gyro + stabilizer แบบเรียลไทม์ ใช้เช็คว่าค่าเป็น NaN หรือไม่</p></div>
+    <div class="card"><h4>📜 read_boot.py</h4><p>อ่าน serial + รีเซ็ตบอร์ด กรอง log สำคัญ (WHO_AM_I, Ready to fly, ฯลฯ) ตรวจ boot เร็ว ๆ</p></div>
+  </div>
+</section>
+
+<!-- ================= LAW ================= -->
+<section id="law">
+  <h2><span class="num">6</span> กฎหมายโดรนในประเทศไทย (กสทช. &amp; CAAT)</h2>
+  <p class="lead">สรุปโดยย่อสำหรับการเรียน/ทดลอง — <b>ก่อนบินจริงต้องตรวจสอบประกาศฉบับปัจจุบัน</b> จากเว็บทางการ: <a href="https://www.caat.or.th" target="_blank" rel="noopener">CAAT</a> · <a href="https://www.nbtc.go.th" target="_blank" rel="noopener">กสทช.</a></p>
+
+  <div class="grid g3">
+    <div class="card"><h4>🏛️ CAAT</h4><p>สำนักงานการบินพลเรือนแห่งประเทศไทย — ดูแล <b>การขึ้นทะเบียนโดรน</b> + ใบอนุญาตนักบินอากาศยานไร้คนขับ</p></div>
+    <div class="card"><h4>📡 กสทช.</h4><p>กำกับดูแล <b>การใช้คลื่นความถี่วิทยุ</b> (WiFi/RC ย่าน 2.4 GHz และ 5.8 GHz) — อุปกรณ์ที่ได้มาตรฐานใช้ได้โดยไม่ต้องขออนุญาตรายบุคคล</p></div>
+    <div class="card"><h4>👮 ตำรวจ</h4><p>บังคับใช้กฎหมายในพื้นที่ — ผู้ฝ่าฝืนอาจถูกดำเนินคดีตาม พ.ร.บ. การเดินอากาศ</p></div>
+  </div>
+
+  <h3>ข้อควรรู้หลัก (โดยย่อ)</h3>
+  <div class="tablewrap">
+    <table>
+      <tr><th>ประเด็น</th><th>ข้อกำหนดโดยย่อ</th></tr>
+      <tr><td>น้ำหนัก 250 กรัมขึ้นไป (รวมแบต)</td><td>ต้อง <b>ขึ้นทะเบียนกับ CAAT</b> + ติดป้ายทะเบียน + ทำประกันภัยความรับผิดต่อบุคคลภายนอก</td></tr>
+      <tr><td>อายุผู้ขึ้นทะเบียน</td><td>ต้อง <b>อายุ 20 ปีบริบูรณ์</b> — นักเรียนที่อายุน้อยกว่า ให้ใช้ชื่อครู/ผู้ปกครองเป็นผู้ขึ้นทะเบียน และบินภายใต้การดูแล</td></tr>
+      <tr><td>เขตห้ามบิน</td><td>รอบสนามบิน (รัศมี ~9 กม.), เขตพระราชฐาน/สถานที่ราชการทหาร, เรือนจำ, โรงพยาบาล, พื้นที่หวงห้ามอื่น ๆ</td></tr>
+      <tr><td>ความสูง</td><td>ห้ามบินสูงเกิน <b>90 เมตร</b> จากพื้น</td></tr>
+      <tr><td>สายตา (VLOS)</td><td>ต้อง <b>มองเห็นโดรนได้ตลอดเวลา</b> — ห้ามบินไกลจนมองไม่เห็นหรือบินแบบ FPV ล้วนโดยไม่มีคนมอง</td></tr>
+      <tr><td>กลางคืน</td><td>ห้ามบินหลังพระอาทิตย์ตก – ก่อนพระอาทิตย์ขึ้น เว้นแต่ได้รับอนุญาต</td></tr>
+      <tr><td>เหนือผู้คน</td><td>ห้ามบินเหนือฝูงชน / ตัวบุคคล / ยานพาหนะ โดยไม่ได้รับอนุญาต</td></tr>
+      <tr><td>ทิ้งสิ่งของ</td><td>ห้ามทิ้งสิ่งของหรือของเหลวจากโดรน</td></tr>
+      <tr><td>บินเพื่อการพาณิชย์</td><td>ต้องมีใบอนุญาตนักบินอากาศยานไร้คนขับ + ขออนุญาตจาก CAAT</td></tr>
+    </table>
+  </div>
+
+  <h3>ด้านคลื่นความถี่ (กสทช.)</h3>
+  <ul class="steps">
+    <li>โดรนของเราใช้ WiFi / RC ย่าน <b>2.4 GHz</b> (และ 5.8 GHz) — อุปกรณ์ที่ได้รับรองมาตรฐานทั่วไปใช้ได้โดยไม่ต้องขอใบอนุญาตรายบุคคล</li>
+    <li><b>ห้ามดัดแปลงเพิ่มกำลังส่ง</b> เกินกว่าที่ประกาศ กสทช. กำหนด (EIRP) — อย่าเพิ่มแอมป์/เสาอากาศแรง ๆ</li>
+    <li>ห้ามกวนหรือรบกวนสัญญาณวิทยุของผู้อื่น (รวมถึง WiFi บ้าน/สาธารณะ)</li>
+  </ul>
+
+  <h3>สำหรับโดรนของเรา (ESP32-S3 SuperMini DIY)</h3>
+  <ul class="steps">
+    <li><b>ชั่งน้ำหนักจริง</b> (รวมโครง+มอเตอร์+ESC+แบต) — โครงการเรียนในร่มส่วนใหญ่ต่ำกว่า 250 กรัม แต่ถ้าเกินต้องขึ้นทะเบียนกับ CAAT</li>
+    <li>แนะนำบินใน <b>ห้องปิด/พื้นที่ส่วนตัว</b> ที่ปลอดภัย และใช้<b>ใบพัดป้องกัน (prop guard)</b></li>
+    <li>ครูเป็นผู้ควบคุมดูแลการบินในห้องเรียน — อย่าบินนอกพื้นที่โดยไม่จำเป็น</li>
+    <li>อย่าบินใกล้ตัวบุคคล/สัตว์ หรือในที่ที่มีคนพลุกพล่าน</li>
+  </ul>
+
+  <div class="callout warn"><b>⚠️ ข้อควรระวังทางกฎหมาย</b> — เนื้อหานี้เป็น<b>สรุปโดยย่อเพื่อการศึกษา</b> กฎหมายและประกาศมีการปรับปรุงอยู่เสมอ ก่อนบินจริงกรุณาตรวจสอบประกาศฉบับปัจจุบันจากเว็บไซต์ทางการของ <a href="https://www.caat.or.th" target="_blank" rel="noopener">CAAT</a> และ <a href="https://www.nbtc.go.th" target="_blank" rel="noopener">กสทช.</a> เสมอ</div>
+</section>
+
+<!-- ================= AI AGENT ================= -->
+<section id="ai">
+  <h2><span class="num">7</span> การใช้ AI Agent ช่วยสร้างโดรน</h2>
+  <p class="lead">AI coding assistant (เช่น <b>GitHub Copilot</b>) เป็นผู้ช่วยที่อ่าน เขียน และแก้โค้ดได้ — โปรเจกต์นี้ใช้ AI ช่วยตั้งแต่หา bug จนถึงสร้างเอกสารเรียน เรียนรู้วิธีใช้ให้ถูกต้องและมีจริยธรรม</p>
+
+  <div class="grid g3">
+    <div class="card"><h4>🔍 อ่าน/อธิบายโค้ด</h4><p>ให้ AI อ่านไฟล์ firmware แล้วอธิบายว่าแต่ละส่วนทำอะไร (เช่น <code>i2c_drv.c</code>, <code>sensors_mpu6050_hm5883L_ms5611.c</code>) — เร็วกว่าอ่านเองทั้งโปรเจกต์</p></div>
+    <div class="card"><h4>🐛 หา bug / debug</h4><p>ป้อน boot log + อาการ (เช่น accel=0) → AI ชี้จุดที่ควรตรวจและแนวทางแก้</p></div>
+    <div class="card"><h4>✍️ เขียนสคริปต์</h4><p>สร้างสคริปต์ควบคุมด้วย cflib (เชื่อมต่อ อ่านค่า บิน) หรือเครื่องมือช่วย flash/ตรวจ</p></div>
+    <div class="card"><h4>📚 สร้างสื่อ/เอกสาร</h4><p>AI ช่วยเขียนคู่มือ สื่อการสอน (เอกสาร HTML นี้) หรือตาราง BOM/กฎหมาย</p></div>
+    <div class="card"><h4>🛠️ Refactor / ทำความสะอาด</h4><p>ลบโค้ด debug ทิ้ง ปรับโครงสร้าง ตั้งชื่อตัวแปรให้ดี — ให้ AI เสนอ แล้วเราตรวจทาน</p></div>
+    <div class="card"><h4>🧪 สร้างชุดทดสอบ</h4><p>เขียนสคริปต์ตรวจซ้ำ (เช่น เช็ค boot log ทุกบอร์ดหลัง flash) ให้งานห้องเรียนอัตโนมัติ</p></div>
+  </div>
+
+  <h3>7.1 ตัวอย่างจริงจากโปรเจกต์นี้</h3>
+  <div class="tablewrap">
+    <table>
+      <tr><th>งาน</th><th>AI ช่วยอะไร</th><th>ผลลัพธ์</th></tr>
+      <tr><td>accel = 0 / ค่า NaN</td><td>วิเคราะห์ boot log + โค้ด → ชี้ว่า clone IMU ไม่มี pullup ภายนอก + <code>GPIO_PULLUP_DISABLE</code> ใน i2c_drv.c</td><td>เปลี่ยนเป็น <code>GPIO_PULLUP_ENABLE</code> → accel ≈ 1g, Ready to fly</td></tr>
+      <tr><td>IMU ค้างหลัง reset</td><td>แยกแยะ firmware กับ hardware → สรุปว่าเป็น latch ของโมดูล ต้องถอด-เสียบ USB จริง</td><td>ประหยัดเวลา รู้ชัดว่าต้องแก้ทาง hardware</td></tr>
+      <tr><td>Flash 10 บอร์ด</td><td>เขียนสคริปต์ flash_board.ps1 + ตรวจ boot log อัตโนมัติ + วินิจฉัยบอร์ด USB เสีย</td><td>10/10 บอร์ดพร้อมใช้</td></tr>
+      <tr><td>flash แบบนักเรียน</td><td>รวมเฟิร์มแวร์เป็น merged.bin + ตั้งค่า ESP-Launchpad (WebSerial) + ทดสอบจริง</td><td>นักเรียน flash ผ่านเบราว์เซอร์ 1 คลิก</td></tr>
+    </table>
+  </div>
+
+  <h3>7.2 เคล็ดลับการถาม AI ให้ได้ผลดี</h3>
+  <ol class="steps">
+    <li><b>ให้บริบทครบ</b> — ระบุไฟล์/บรรทัด, ข้อความ error, boot log, ผลที่คาดหวัง อย่าให้ AI เดาสุ่ม</li>
+    <li><b>ถามทีละเรื่อง</b> — ปัญหาเล็ก ๆ หลายรอบ ดีกว่าปัญหาใหญ่ครั้งเดียว</li>
+    <li><b>ให้ AI "อ่านก่อนแล้วค่อยตอบ"</b> — สั่งให้อ่านไฟล์ที่เกี่ยวข้องก่อนเสนอวิธีแก้</li>
+    <li><b>ขอคำอธิบายประกอบ</b> — ให้ AI อธิบายว่าทำไมถึงแก้แบบนี้ เพื่อให้เราเข้าใจ (ไม่ใช่ก๊อปปี้)</li>
+    <li><b>ตรวจสอบเสมอ</b> — รัน build/flash/ทดสอบจริงหลังแก้ อย่าเชื่อผลลัพธ์ของ AI โดยไม่ verify</li>
+  </ol>
+
+  <h3>7.3 คำสั่ง Prompt สำเร็จรูป (copy-paste ได้)</h3>
+  <div class="tablewrap">
+    <table>
+      <tr><th>สถานการณ์</th><th>Prompt ตัวอย่าง</th></tr>
+      <tr><td>ให้ AI อ่านโค้ดก่อนตอบ</td><td><code>อ่านไฟล์ components/drivers/i2c_bus/i2c_drv.c แล้วอธิบายว่า i2cdrvInitBus ทำอะไรบ้าง</code></td></tr>
+      <tr><td>หา bug จาก log</td><td><code>นี่คือ boot log: [วาง log] — ทำไม WHO_AM_I เป็น 0x00? ควรแก้ที่ไหนก่อน</code></td></tr>
+      <tr><td>เขียนฟังก์ชัน loop ส่งคำสั่ง</td><td><code>เขียน Python ฟังก์ชัน setpoint ที่ส่ง cf.commander.send_setpoint ทุก 20ms วน loop พร้อมวิธีหยุดอย่างปลอดภัย</code></td></tr>
+      <tr><td>อ่านค่าอย่างต่อเนื่อง</td><td><code>สร้าง LogConfig อ่าน acc.z + gyro.x ทุก 50ms แล้วพิมพ์เป็นตาราง</code></td></tr>
+      <tr><td>แก้แล้วขอคำอธิบาย</td><td><code>แก้ i2c_drv.c ให้เปิด pullup แล้วอธิบายว่าทำไมถึงแก้แบบนี้ + มีผลข้างเคียงไหม</code></td></tr>
+      <tr><td>สร้างเครื่องมือช่วย</td><td><code>เขียนสคริปต์อ่าน boot log ผ่าน serial แล้วกรองเฉพาะ WHO_AM_I / I2C connection / Ready to fly</code></td></tr>
+    </table>
+  </div>
+
+  <h3>7.4 เทคนิคการสร้าง Loop (โค้ดและกระบวนการ)</h3>
+  <div class="grid g2">
+    <div class="card"><h4>🔄 Loop ส่งคำสั่งบิน</h4><p>คำสั่งบินต้องส่ง<b>ต่อเนื่องทุก ~20ms</b> — ใช้ <code>while True</code> + <code>time.sleep(0.02)</code> พร้อมเงื่อนไขหยุด (ครบรอบ / Ctrl+C) กัน infinite loop</p></div>
+    <div class="card"><h4>🔁 Loop อ่านเซนเซอร์</h4><p>ใช้ <code>LogConfig</code> + <code>data_received_cb</code> — callback ถูกเรียกทุกครั้งที่มีข้อมูล (เช่นทุก 50ms) ไม่ต้องเขียน while เอง</p></div>
+    <div class="card"><h4>⚙️ Control loop ใน firmware</h4><p>ESP-FLY รันลูปควบคุม ~500 Hz (อ่านเซนเซอร์ → attitude → PID → mixer → PWM) ใน FreeRTOS task — ปกติไม่ต้องแก้ ยกเว้นจูน PID</p></div>
+    <div class="card"><h4>♻️ Retry loop (เชื่อถือได้)</h4><p>งาน flash/ตรวจซ้ำควรมี retry: ลอง N ครั้ง + รอระหว่างรอบ (เช่น <code>for i in range(5)</code> + <code>time.sleep(1)</code>) — กัน USB หลุดชั่วคราว</p></div>
+  </div>
+  <div class="callout info"><b>💡 เทคนิควนถาม AI (iterative prompting)</b> — ถามทีละขั้น → ตรวจผลจริง (build/flash/รัน) → เอา error ใหม่ไปถามต่อ เหมือน debug วนรอบ จนกว่าจะผ่าน อย่าถามครั้งเดียวจบแล้วเชื่อทันที</div>
+
+  <h3>7.5 Log ที่จำเป็นต้องรู้</h3>
+  <div class="tablewrap">
+    <table>
+      <tr><th>Log / คำสั่ง</th><th>ดูอะไร</th><th>ปกติควรเห็น</th></tr>
+      <tr><td><code>idf.py monitor</code></td><td>ดู log สดจากบอร์ดผ่าน USB</td><td>boot log ทั้งหมด + ข้อความ runtime</td></tr>
+      <tr><td><code>read_boot.py</code> / <code>boot_peek.py</code></td><td>อ่าน boot log (แบบ reset / ไม่ reset)</td><td><code>WHO_AM_I=0x38</code>, <code>I2C connection [OK]</code>, <code>Ready to fly.</code></td></tr>
+      <tr><td><code>wifi_init_softap</code></td><td>ยืนยัน WiFi AP ขึ้น</td><td><code>wifi_init_softap complete.SSID:ESP-DRONE_...</code></td></tr>
+      <tr><td>cflib <code>LogConfig</code></td><td>อ่านค่าข้อมูลผ่าน WiFi</td><td><code>acc.z ≈ 1</code>, gyro ≈ 0, stabilizer ไม่ NaN</td></tr>
+      <tr><td>Task dump / <code>SYSLOAD</code></td><td>รายการ task + stack ที่เหลือตอน boot</td><td>ทุก task โผล่ครบ (SENSORS, STABILIZER, wifi...)</td></tr>
+      <tr><td><code>stabilizer.roll/pitch/yaw</code></td><td>ท่าทางปัจจุบัน (มุมออยเลอร์)</td><td>ค่าเป็นตัวเลขจริง ไม่ใช่ NaN</td></tr>
+    </table>
+  </div>
+
+  <div class="callout warn"><b>⚠️ ข้อควรระวัง / จริยธรรม</b>
+    <ul>
+      <li>AI <b>ผิดได้</b> — โค้ดที่ได้อาจ compile ไม่ผ่าน มี bug หรือล้าสมัย ต้องทดสอบจริงเสมอ</li>
+      <li>ห้ามใช้ AI ทำงานแทนการเข้าใจ — ต้องอ่านและอธิบายโค้ดที่เราใช้ได้ด้วยตัวเอง</li>
+      <li>งาน/การบ้าน/สอบ — ใช้ AI เป็นผู้ช่วยอธิบายได้ แต่ต้องทำความเข้าใจด้วยตนเอง</li>
+      <li>ระวังข้อมูลส่วนตัว/ความลับ — อย่าแปะโค้ดหรือข้อมูลสำคัญที่ไม่ควรเผยแพร่</li>
+      <li>ตรวจสอบลิขสิทธิ์ — โค้ด/เนื้อหาที่ AI สร้าง อาจมีต้นตอจากที่อื่น ต้องแน่ใจว่านำมาใช้ได้</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= WORKSHEET ================= -->
+<section id="worksheet">
+  <h2><span class="num">📝</span> ใบงาน &amp; Checklist</h2>
+  <p class="lead">เอกสารแจกนักเรียน — พิมพ์ได้ (Ctrl+P) แล้วแจกเป็นใบงาน/เช็กลิสต์</p>
+
+  <h3>ใบงาน 1 — คำนวณแรงยกและ Mixer</h3>
+  <ol class="steps">
+    <li>โดรนหนัก <b>300 กรัม</b> (0.3 kg) ต้องได้แรงยกรวมเท่าไรถึงจะลอยนิ่ง? (g = 9.81) → หาร 4 = แรงยกต่อมอเตอร์?</li>
+    <li>จากสมการ mixer ถ้าสั่ง throttle=50, pitch=0, roll=0, yaw=0 → m1..m4 เท่ากันไหม? โดรนจะทำอย่างไร?</li>
+    <li>อยากให้โดรน<b>หันขวา</b> ต้องเพิ่ม/ลดมอเตอร์คู่ไหน? (CW หรือ CCW — ตอบพร้อมอธิบายแรงบิด)</li>
+    <li>สมมติโดรนลอยเอียงขวาค้างตลอด — ควรปรับอะไรในแอป? (ดูตาราง 4.4.1)</li>
+  </ol>
+
+  <h3>ใบงาน 2 — อ่าน Boot Log</h3>
+  <ol class="steps">
+    <li>บรรทัดไหนบอกว่า IMU ติดต่อได้? (<code>WHO_AM_I</code> ควรเป็นค่าใดสำหรับ clone → 0x38)</li>
+    <li>บรรทัดไหนบอกว่าเฟิร์มแวร์พร้อมบิน? (<code>Ready to fly.</code>)</li>
+    <li>ถ้าเห็นแต่ <code>rst:0x15</code> แล้วเงียบสนิท — ควรสงสัยอะไรก่อน? (สาย USB / บอร์ด / เฟิร์มแวร์?)</li>
+    <li>เห็น <code>VL53L1X [FAIL]</code> + <code>PMW3901 [FAIL]</code> — ผิดปกติไหม? เพราะอะไร?</li>
+  </ol>
+
+  <h3>Checklist ประกอบโดรน (ก่อนเปิดเครื่อง)</h3>
+  <ul class="check">
+    <li>IMU ต่อครบ: VCC→3V3 · GND→GND · SDA→GPIO8 · SCL→GPIO9</li>
+    <li>มอเตอร์ M1–M4 ต่อ GPIO 4,5,6,7 ถูกตำแหน่ง (ทิศหมุน CW/CCW ตามแผนภาพ)</li>
+    <li>ใบพัด: ตำแหน่งถูก + เกลียวแน่น (ชุด CW/CCW คนละชุด)</li>
+    <li>แบตเตอรี่: ขั้วไม่สลับ · ต่อเป็นลำดับสุดท้าย</li>
+    <li>ถอดใบพัดตอนทดสอบซอฟต์แวร์ / ใส่ prop guard ตอนบิน</li>
+    <li>ตรวจ boot log: WHO_AM_I=0x38 → I2C [OK] → Ready to fly.</li>
+    <li>บินในพื้นที่ปลอดภัย + ตรวจกฎหมาย (หัวข้อ 6)</li>
+  </ul>
+</section>
+
+</main>
+
+<footer>
+  สื่อการสอนสร้างโดรนควอดคอปเตอร์ · ESP32-S3 + ESP-FLY · จัดทำจากประสบการณ์การสร้างจริง<br>
+  ทดสอบบนบอร์ด ESP32-S3 SuperMini · IMU MPU-6050 clone · มอเตอร์ Brushed 7×20mm
+</footer>
+
+<script>
+  // highlight active nav link on scroll
+  const links = [...document.querySelectorAll('nav a')];
+  const secs = [...document.querySelectorAll('section')];
+  const onScroll = () => {
+    const y = scrollY + 120;
+    let cur = secs[0].id;
+    for (const s of secs) if (s.offsetTop <= y) cur = s.id;
+    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur));
+  };
+  addEventListener('scroll', onScroll); onScroll();
+
+  // ---------- PROJECTOR MODE ----------
+  const projBtn = document.getElementById('projBtn');
+  projBtn.addEventListener('click', () => {
+    const on = document.body.classList.toggle('proj');
+    projBtn.textContent = on ? '🔍 โหมดปกติ' : '🖥️ โหมดโปรเจกเตอร์';
+    if (on && !document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(()=>{});
+    else if (!on && document.fullscreenElement) document.exitFullscreen?.();
+  });
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && document.body.classList.contains('proj')) {
+      document.body.classList.remove('proj');
+      projBtn.textContent = '🖥️ โหมดโปรเจกเตอร์';
+    }
+  });
+</script>
+</body>
+</html>
