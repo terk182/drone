@@ -447,49 +447,49 @@
       <defs>
         <marker id="ar2" markerWidth="7" markerHeight="7" refX="5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#3fb950"/></marker>
       </defs>
-      <!-- frame -->
-      <line x1="30" y1="150" x2="430" y2="150" stroke="#2d3748" stroke-width="6" stroke-linecap="round"/>
-      <line x1="230" y1="30" x2="230" y2="270" stroke="#2d3748" stroke-width="6" stroke-linecap="round"/>
+      <!-- frame (X-quad: มุมทั้ง 4) -->
+      <line x1="120" y1="70" x2="340" y2="230" stroke="#2d3748" stroke-width="6" stroke-linecap="round"/>
+      <line x1="340" y1="70" x2="120" y2="230" stroke="#2d3748" stroke-width="6" stroke-linecap="round"/>
       <circle cx="230" cy="150" r="16" fill="#1c2230" stroke="#58a6ff" stroke-width="2"/>
       <text x="230" y="155" text-anchor="middle" font-size="12" fill="#58a6ff">MCU</text>
-      <!-- motors -->
+      <text x="230" y="22" text-anchor="middle" fill="#8b98a9" font-size="11">(ด้านหน้า)</text>
+      <!-- motors: M1 หน้า-ซ้าย, M4 หน้า-ขวา, M3 หลัง-ซ้าย, M2 หลัง-ขวา -->
       <g text-anchor="middle" font-size="12">
-        <circle cx="230" cy="55" r="24" fill="#1c2230" stroke="#f85149" stroke-width="2"/><text x="230" y="59" fill="#f85149">M1</text>
-        <text x="230" y="30" fill="#8b98a9" font-size="11">(ด้านหน้า)</text>
-        <circle cx="400" cy="150" r="24" fill="#1c2230" stroke="#f85149" stroke-width="2"/><text x="400" y="154" fill="#f85149">M2</text>
-        <circle cx="230" cy="245" r="24" fill="#1c2230" stroke="#f85149" stroke-width="2"/><text x="230" y="249" fill="#f85149">M3</text>
-        <circle cx="60" cy="150" r="24" fill="#1c2230" stroke="#f85149" stroke-width="2"/><text x="60" y="154" fill="#f85149">M4</text>
-        <text x="60" y="285" fill="#8b98a9" font-size="11">M1=GPIO4 · M2=GPIO5 · M3=GPIO6 · M4=GPIO7</text>
+        <circle cx="120" cy="70" r="24" fill="#1c2230" stroke="#f85149" stroke-width="2"/><text x="120" y="74" fill="#f85149">M1</text>
+        <circle cx="340" cy="230" r="24" fill="#1c2230" stroke="#f85149" stroke-width="2"/><text x="340" y="234" fill="#f85149">M2</text>
+        <circle cx="120" cy="230" r="24" fill="#1c2230" stroke="#f85149" stroke-width="2"/><text x="120" y="234" fill="#f85149">M3</text>
+        <circle cx="340" cy="70" r="24" fill="#1c2230" stroke="#f85149" stroke-width="2"/><text x="340" y="74" fill="#f85149">M4</text>
+        <text x="230" y="292" fill="#8b98a9" font-size="11">M1=GPIO4 · M2=GPIO5 · M3=GPIO6 · M4=GPIO7</text>
       </g>
-      <!-- rotation arrows -->
+      <!-- rotation arrows: M1/M3 = CW, M2/M4 = CCW (ลูกศรบนยอดวงกลม) -->
       <g fill="#3fb950" font-size="11" text-anchor="middle">
-        <path d="M214,32 Q230,18 246,32" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#ar2)"/><text x="230" y="13">หมุน CW</text>
-        <path d="M384,127 Q400,113 416,127" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#ar2)"/><text x="400" y="108">CCW</text>
-        <path d="M214,222 Q230,208 246,222" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#ar2)"/><text x="230" y="203">CW</text>
-        <path d="M44,127 Q60,113 76,127" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#ar2)"/><text x="60" y="108">CCW</text>
+        <path d="M104,47 Q120,32 136,47" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#ar2)"/><text x="120" y="24">หมุน CW</text>
+        <path d="M356,47 Q340,32 324,47" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#ar2)"/><text x="340" y="24">CCW</text>
+        <path d="M104,213 Q120,198 136,213" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#ar2)"/><text x="120" y="284">CW</text>
+        <path d="M356,213 Q340,198 324,213" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#ar2)"/><text x="340" y="284">CCW</text>
       </g>
     </svg>
-    <figcaption>การจัดมอเตอร์แบบ X-quad: M1/M3 หมุน CW, M2/M4 หมุน CCW — ใบพัด CW และ CCW ต้องใช้คนละชุด (ล็อกเกลียวต่างทิศ)</figcaption>
+    <figcaption>การจัดมอเตอร์แบบ X-quad (มองจากด้านบน): <b>M1/M4 อยู่ด้านหน้า</b>, <b>M2/M3 อยู่ด้านหลัง</b> — <b>M1/M3 หมุน CW</b>, <b>M2/M4 หมุน CCW</b> — ใบพัด CW และ CCW ต้องใช้คนละชุด (ล็อกเกลียวต่างทิศ)</figcaption>
   </div>
 
   <div class="grid g3">
     <div class="card"><h4>🔼 Throttle (คันเร่ง)</h4><p>เพิ่ม/ลดกำลังมอเตอร์ทั้ง 4 ตัวพร้อมกัน → โดรนขึ้น/ลง</p></div>
-    <div class="card"><h4>↔️ Roll (เอียงซ้าย-ขวา)</h4><p>M2 กับ M4 ต่างกัน (ข้างหนึ่งเร่ง อีกข้างผ่อน) → โดรนเอียงไปด้านข้าง</p></div>
-    <div class="card"><h4>↕️ Pitch (ก้ม-เงย)</h4><p>M1 กับ M3 ต่างกัน → โดรนโน้มหน้า/หลัง</p></div>
+    <div class="card"><h4>↔️ Roll (เอียงซ้าย-ขวา)</h4><p>คู่ทแยง <code>M1,M2</code> กับ <code>M3,M4</code> ต่างกัน (ข้างหนึ่งเร่ง อีกข้างผ่อน) → โดรนเอียงไปด้านข้าง</p></div>
+    <div class="card"><h4>↕️ Pitch (ก้ม-เงย)</h4><p>คู่หน้า <code>M1,M4</code> กับคู่หลัง <code>M2,M3</code> ต่างกัน → โดรนโน้มหน้า/หลัง</p></div>
     <div class="card"><h4>🔄 Yaw (หันซ้าย-ขวา)</h4><p>คู่ CW กับคู่ CCW ต่างกัน → เกิดแรงบิดหันตัว</p></div>
   </div>
 
   <h4>สมการ Mixer (จับคู่คำสั่ง → กำลังมอเตอร์แต่ละตัว)</h4>
-  <pre><span class="tag">quad mixer</span><span class="cmt"># โดยประมาณ (ค่าจริงดูใน power_distribution_stock.c)</span>
-<span class="n">m1</span> = <span class="n">throttle</span> + <span class="n">pitch</span> + <span class="n">yaw</span>
-<span class="n">m2</span> = <span class="n">throttle</span> − <span class="n">roll</span>  − <span class="n">yaw</span>
-<span class="n">m3</span> = <span class="n">throttle</span> − <span class="n">pitch</span> + <span class="n">yaw</span>
-<span class="n">m4</span> = <span class="n">throttle</span> + <span class="n">roll</span>  − <span class="n">yaw</span></pre>
+  <pre><span class="tag">quad mixer</span><span class="cmt"># โดยประมาณ X-quad (ค่าจริงดูใน power_distribution_stock.c)</span>
+<span class="n">m1</span> = <span class="n">throttle</span> − <span class="n">roll</span>/2  + <span class="n">pitch</span>/2 + <span class="n">yaw</span>
+<span class="n">m2</span> = <span class="n">throttle</span> − <span class="n">roll</span>/2  − <span class="n">pitch</span>/2 − <span class="n">yaw</span>
+<span class="n">m3</span> = <span class="n">throttle</span> + <span class="n">roll</span>/2  − <span class="n">pitch</span>/2 + <span class="n">yaw</span>
+<span class="n">m4</span> = <span class="n">throttle</span> + <span class="n">roll</span>/2  + <span class="n">pitch</span>/2 − <span class="n">yaw</span></pre>
 
   <h4>การหักล้างแรงบิดของใบพัด (Torque cancellation)</h4>
   <p>ใบพัดหมุนดันอากาศลงเพื่อสร้างแรงยก แต่ <b>การหมุนนั้นสร้างแรงบิดโต้กลับ (reaction torque) ในทิศตรงข้ามเสมอ</b> — ใบพัด CW จะผลักเฟรมให้อยากหมุนทวนเข็ม ถ้าใบพัดทั้ง 4 หมุนทิศเดียวกัน โดรนจะปั่นหมุนรอบแกนตั้งเอง (yaw spin) ควบคุมไม่ได้</p>
   <div class="grid g2">
-    <div class="card"><h4>⚖️ วิธีหักล้าง</h4><p>หมุนสลับทิศ 2+2: <b>M1+M3 หมุน CW</b>, <b>M2+M4 หมุน CCW</b> — เมื่อ throttle เท่ากัน แรงบิด CW กับ CCW หักล้างกันพอดี → โดรนลอยนิ่งไม่หันเอง</p></div>
+    <div class="card"><h4>⚖️ วิธีหักล้าง</h4><p>หมุนสลับทิศ 2+2: <b>M1+M3 (ซ้าย) หมุน CW</b>, <b>M2+M4 (ขวา) หมุน CCW</b> — เมื่อ throttle เท่ากัน แรงบิด CW กับ CCW หักล้างกันพอดี → โดรนลอยนิ่งไม่หันเอง</p></div>
     <div class="card"><h4>🔄 ใช้หันซ้าย/ขวา (Yaw)</h4><p>ทำให้ไม่สมดุลชั่วคราว: เพิ่มคู่ CW (M1,M3) → หมุนซ้าย · เพิ่มคู่ CCW (M2,M4) → หมุนขวา — โดยแรงยกสุทธิยังเท่าเดิม</p></div>
   </div>
   <div class="tablewrap">
@@ -535,8 +535,8 @@
   </div>
 
   <div class="grid g3">
-    <div class="card"><h4>🔄 Roll φ (แกน X)</h4><p>เอียงซ้าย-ขวา — ควบคุมโดยผลต่าง <code>M2 vs M4</code></p></div>
-    <div class="card"><h4>↕️ Pitch θ (แกน Y)</h4><p>ก้ม/เงย — ควบคุมโดยผลต่าง <code>M1 vs M3</code></p></div>
+    <div class="card"><h4>🔄 Roll φ (แกน X)</h4><p>เอียงซ้าย-ขวา — คู่ทแยง <code>M1,M2</code> vs <code>M3,M4</code></p></div>
+    <div class="card"><h4>↕️ Pitch θ (แกน Y)</h4><p>ก้ม/เงย — คู่หน้า/หลัง <code>M1,M4</code> vs <code>M2,M3</code></p></div>
     <div class="card"><h4>🧭 Yaw ψ (แกน Z)</h4><p>หันซ้าย/ขวา — ควบคุมโดยคู่ CW vs CCW</p></div>
   </div>
 
@@ -720,7 +720,7 @@
 
   <h3>3.3 ขั้นตอนการประกอบ</h3>
   <ol class="steps">
-    <li><b>เตรียมโครงและติดตั้งมอเตอร์</b> — ยึดมอเตอร์ 4 ตัวเข้ากับแขนโครงตามตำแหน่ง X-quad (M1 หน้า-ซ้าย, M2 ขวา, M3 หลัง, M4 ซ้าย) ยังไม่ใส่ใบพัด</li>
+    <li><b>เตรียมโครงและติดตั้งมอเตอร์</b> — ยึดมอเตอร์ 4 ตัวเข้ากับแขนโครงแบบ X-quad: M1 หน้า-ซ้าย · M4 หน้า-ขวา · M2 หลัง-ขวา · M3 หลัง-ซ้าย ยังไม่ใส่ใบพัด</li>
     <li><b>ต่อวงจรจ่ายไฟมอเตอร์</b> — มอเตอร์แต่ละตัวต่อผ่าน MOSFET (Drain→มอเตอร์, Source→GND, Gate→GPIO 4–7) พร้อมไดโอดคร่อมกัน back-EMF</li>
     <li><b>ต่อโมดูล IMU ผ่าน I2C</b> — VCC→3V3, GND→GND, SDA→GPIO8, SCL→GPIO9 (ลองต่อ INT→GPIO13 ด้วย ถ้ามี)</li>
     <li><b>ต่อ LED สถานะ</b> — LED เขียว=GPIO2, น้ำเงิน=GPIO11, แดง=GPIO43 (ผ่าน R 330Ω อนุกรม)</li>
