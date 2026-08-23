@@ -486,6 +486,44 @@
 <span class="n">m3</span> = <span class="n">throttle</span> + <span class="n">roll</span>/2  − <span class="n">pitch</span>/2 + <span class="n">yaw</span>
 <span class="n">m4</span> = <span class="n">throttle</span> + <span class="n">roll</span>/2  + <span class="n">pitch</span>/2 − <span class="n">yaw</span></pre>
 
+  <h4>🧮 ตัวอย่างการคำนวณ Mixer</h4>
+  <p>สมมติสั่ง <code>throttle=50</code> (สเกล 0–100) แล้วเพิ่มคำสั่งทีละแกน — สังเกตว่า <b>ผลรวมกำลังทั้ง 4 ตัว = 200 เท่าเดิมเสมอ</b> (แรงยกสุทธิคงที่ แค่ย้ายแรงไปฝั่งที่ต้องการ):</p>
+  <div class="grid g3">
+    <div class="card">
+      <h4>↕️ Pitch: ก้มไปข้างหน้า</h4>
+      <p style="margin-bottom:6px"><code>throttle=50, pitch=10</code></p>
+      <pre style="margin:0; padding:10px 12px; font-size:12.5px">m1 = 50 + 10/2 = 55   (หน้า-ซ้าย)
+m2 = 50 − 10/2 = 45   (หลัง-ขวา)
+m3 = 50 − 10/2 = 45   (หลัง-ซ้าย)
+m4 = 50 + 10/2 = 55   (หน้า-ขวา)</pre>
+      <p class="muted" style="font-size:13px; margin-top:8px">คู่หน้า M1,M4 = 55 > คู่หลัง M2,M3 = 45 → โดรนโน้มไปข้างหน้า</p>
+    </div>
+    <div class="card">
+      <h4>↔️ Roll: เอียงด้านข้าง</h4>
+      <p style="margin-bottom:6px"><code>throttle=50, roll=10</code></p>
+      <pre style="margin:0; padding:10px 12px; font-size:12.5px">m1 = 50 − 10/2 = 45   (หน้า-ซ้าย)
+m2 = 50 − 10/2 = 45   (หลัง-ขวา)
+m3 = 50 + 10/2 = 55   (หลัง-ซ้าย)
+m4 = 50 + 10/2 = 55   (หน้า-ขวา)</pre>
+      <p class="muted" style="font-size:13px; margin-top:8px">คู่ทแยง M3,M4 = 55 > คู่ทแยง M1,M2 = 45 → เอียงไปด้านข้าง</p>
+    </div>
+    <div class="card">
+      <h4>🔄 Yaw: หันซ้าย</h4>
+      <p style="margin-bottom:6px"><code>throttle=50, yaw=10</code></p>
+      <pre style="margin:0; padding:10px 12px; font-size:12.5px">m1 = 50 + 10 = 60   (CW)
+m2 = 50 − 10 = 40   (CCW)
+m3 = 50 + 10 = 60   (CW)
+m4 = 50 − 10 = 40   (CCW)</pre>
+      <p class="muted" style="font-size:13px; margin-top:8px">คู่ CW M1,M3 = 60 > คู่ CCW M2,M4 = 40 → หมุนซ้าย (ทวนเข็มนาฬิกา)</p>
+    </div>
+  </div>
+  <div class="callout info"><b>💡 ลองรวมทุกแกนพร้อมกัน</b> สั่ง <code>throttle=50, roll=10, pitch=5, yaw=10</code>:
+  <pre style="margin:8px 0 0">m1 = 50 − 5 + 2.5 + 10 = 57.5   (หน้า-ซ้าย)
+m2 = 50 − 5 − 2.5 − 10 = 32.5   (หลัง-ขวา)
+m3 = 50 + 5 − 2.5 + 10 = 62.5   (หลัง-ซ้าย)
+m4 = 50 + 5 + 2.5 − 10 = 47.5   (หน้า-ขวา)</pre>
+  <p class="muted" style="font-size:13px; margin:8px 0 0">ผลรวมยัง = 200 — M3 มากสุด (62.5) ส่วน M2 น้อยสุด (32.5) ลองเดาดูว่าทำไม แล้วตรวจกับใบงาน 1 📝</p></div>
+
   <h4>การหักล้างแรงบิดของใบพัด (Torque cancellation)</h4>
   <p>ใบพัดหมุนดันอากาศลงเพื่อสร้างแรงยก แต่ <b>การหมุนนั้นสร้างแรงบิดโต้กลับ (reaction torque) ในทิศตรงข้ามเสมอ</b> — ใบพัด CW จะผลักเฟรมให้อยากหมุนทวนเข็ม ถ้าใบพัดทั้ง 4 หมุนทิศเดียวกัน โดรนจะปั่นหมุนรอบแกนตั้งเอง (yaw spin) ควบคุมไม่ได้</p>
   <div class="grid g2">
