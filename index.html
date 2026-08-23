@@ -144,6 +144,12 @@
   .mfill{height:100%; width:50%; background:var(--accent); border-radius:6px; transition:width .15s ease, background .15s ease;}
   .mval{width:56px; text-align:right; font-family:Consolas,monospace; font-weight:700; color:var(--text); flex-shrink:0;}
 
+  /* ---------- 3D DRONE ---------- */
+  .drone3d-wrap{background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin:18px 0;}
+  .drone3d{width:100%; height:340px; border-radius:10px; background:radial-gradient(circle at 50% 35%, #16202e 0%, #0a0e14 78%); position:relative; overflow:hidden; margin-top:10px;}
+  .drone3d canvas{display:block;}
+  .drone3d .err{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:13px; text-align:center; padding:20px; line-height:1.7;}
+
   /* ---------- IMAGES / PHOTOS ---------- */
   figure.photo{
     background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius);
@@ -565,6 +571,12 @@ m4 = 50 − 10 = 40   (CCW)</pre>
 m2 = 50 − 0/2 − 0/2 − 0 = 50
 m3 = 50 + 0/2 − 0/2 + 0 = 50
 m4 = 50 + 0/2 + 0/2 − 0 = 50</pre>
+  </div>
+
+  <div class="drone3d-wrap">
+    <b style="color:var(--text)">🛸 โดรน 3 มิติ — ลากหมุนมุมมอง / สกรอลล์ซูม · ความเอียง ใบพัด และลูกศรแรงขับ เปลี่ยนตาม slider ด้านบน</b>
+    <div id="drone3d" class="drone3d"><div class="err">กำลังโหลดโมเดล 3D…</div></div>
+    <p class="muted" style="font-size:12.5px; margin-top:6px">ใบพัด <b style="color:#3fb950">เขียว</b> = CW · <b style="color:#58a6ff">น้ำเงิน</b> = CCW — ความเร็วใบพัดและลูกศรสีทอง = กำลัง m1–m4 ที่คำนวณได้จาก slider</p>
   </div>
 
   <h4>การหักล้างแรงบิดของใบพัด (Torque cancellation)</h4>
@@ -1476,9 +1488,118 @@ cf.param.<span class="f">set_value</span>(<span class="s">'pid_attitude.roll_kp'
     }
     mxSum.textContent = sum;
     mxFormula.textContent = lines.join('\n');
+    if (window.__droneSetState) window.__droneSetState({ roll: r, pitch: p, yaw: y, motors: raw });
   }
   ['T','r','p','y'].forEach(k => mxEls[k].addEventListener('input', updateMixer));
   updateMixer();
+
+  // ---------- 3D DRONE (Three.js จาก CDN) ----------
+  const d3dEl = document.getElementById('drone3d');
+  function drone3dError(msg){
+    if (d3dEl) d3dEl.innerHTML = '<div class="err">🛸 ' + msg + '<br>ต้องเชื่อมต่ออินเทอร์เน็ตครั้งแรกเพื่อโหลด Three.js<br>(โหลดครั้งเดียวแล้วเบราว์เซอร์ cache ไว้)</div>';
+  }
+  function loadThree(){
+    return new Promise((res, rej) => {
+      if (window.THREE) return res();
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js';
+      s.onload = () => {
+        const s2 = document.createElement('script');
+        s2.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js';
+        s2.onload = res; s2.onerror = rej;
+        document.head.appendChild(s2);
+      };
+      s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+  function initDrone3D(){
+    try {
+      d3dEl.innerHTML = '';
+      const W = d3dEl.clientWidth || 640, H = 340;
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
+      camera.position.set(3.0, 2.4, 3.4); camera.lookAt(0, 0.1, 0);
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(W, H); renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      d3dEl.appendChild(renderer.domElement);
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true; controls.dampingFactor = 0.08;
+      controls.minDistance = 1.8; controls.maxDistance = 9; controls.maxPolarAngle = Math.PI * 0.85;
+      scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+      const dl = new THREE.DirectionalLight(0xffffff, 0.85); dl.position.set(3, 5, 2); scene.add(dl);
+      const dl2 = new THREE.DirectionalLight(0x88ccff, 0.35); dl2.position.set(-3, 2, -3); scene.add(dl2);
+      const grid = new THREE.GridHelper(6, 12, 0x2d3748, 0x1b2432); grid.position.y = -0.85; scene.add(grid);
+      scene.add(new THREE.AxesHelper(1.3));
+      // nested groups: yaw -> pitch -> roll -> โมเดล
+      const yawG = new THREE.Group(), pitchG = new THREE.Group(), rollG = new THREE.Group();
+      yawG.add(pitchG); pitchG.add(rollG); scene.add(yawG);
+      const matArm  = new THREE.MeshStandardMaterial({ color: 0x39475c, metalness: .4, roughness: .5 });
+      const matBody = new THREE.MeshStandardMaterial({ color: 0x58a6ff, metalness: .25, roughness: .45 });
+      const matMot  = new THREE.MeshStandardMaterial({ color: 0xf85149, metalness: .3, roughness: .4 });
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.14, 0.36), matBody); body.position.y = 0.03; rollG.add(body);
+      const nose = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.16, 4), matBody);
+      nose.rotation.x = -Math.PI / 2; nose.position.set(0.26, 0.12, 0); rollG.add(nose);
+      const R = 0.72;
+      const pos = [ {x: R, z: -R}, {x: -R, z: R}, {x: -R, z: -R}, {x: R, z: R} ]; // M1..M4 (หน้า=+X)
+      const cw = [true, false, true, false]; // M1,M3 = CW ; M2,M4 = CCW
+      const propGroups = [], thrustArrows = [];
+      for (let i = 0; i < 4; i++) {
+        const p = pos[i];
+        const len = Math.hypot(p.x, p.z);
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.05, len), matArm);
+        arm.position.set(p.x / 2, 0.01, p.z / 2); arm.rotation.y = Math.atan2(p.x, p.z);
+        rollG.add(arm);
+        const mot = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.12, 20), matMot);
+        mot.position.set(p.x, 0.03, p.z); rollG.add(mot);
+        const prop = new THREE.Group();
+        const pm = new THREE.MeshStandardMaterial({ color: cw[i] ? 0x3fb950 : 0x58a6ff, transparent: true, opacity: .92, side: THREE.DoubleSide });
+        const b1 = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.012, 0.055), pm); b1.position.x = 0.16;
+        const b2 = b1.clone(); b2.position.x = -0.16;
+        const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.035, 12), pm);
+        prop.add(b1, b2, hub); prop.position.set(p.x, 0.20, p.z);
+        rollG.add(prop); propGroups.push(prop);
+        const arrow = new THREE.Group();
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 0.5, 8), new THREE.MeshBasicMaterial({ color: 0xffd76b }));
+        stem.position.y = 0.25;
+        const head = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.13, 12), new THREE.MeshBasicMaterial({ color: 0xffd76b }));
+        head.position.y = 0.565;
+        arrow.add(stem, head); arrow.position.set(p.x, 0.02, p.z); arrow.visible = false;
+        rollG.add(arrow); thrustArrows.push(arrow);
+      }
+      const state = { roll: 0, pitch: 0, yaw: 0, motors: [50, 50, 50, 50] };
+      window.__droneSetState = s => { state.roll = s.roll; state.pitch = s.pitch; state.yaw = s.yaw; state.motors = s.motors; };
+      (function animate(){
+        requestAnimationFrame(animate);
+        const k = 0.6; // slider (-100..100) -> องศาเอียง
+        yawG.rotation.y   = state.yaw   * k * Math.PI / 180;
+        pitchG.rotation.z = state.pitch * k * Math.PI / 180; // +pitch -> หน้าเงย (M1,M4 เร่ง)
+        rollG.rotation.x  = -state.roll * k * Math.PI / 180; // +roll -> เอียงซ้ายลง (ฝั่ง M3,M4 เร่ง)
+        for (let i = 0; i < 4; i++) {
+          const v = state.motors[i];
+          const sp = v < 5 ? 0 : (v / 100) * 22;
+          propGroups[i].rotation.y += sp * 0.016 * (cw[i] ? 1 : -1);
+          thrustArrows[i].visible = v > 8;
+          if (v > 8) {
+            const sc = 0.4 + (v / 100) * 1.0;
+            thrustArrows[i].scale.set(1, sc, 1);
+            thrustArrows[i].children[0].position.y = 0.25 * sc;
+            thrustArrows[i].children[1].position.y = 0.56 * sc;
+          }
+        }
+        controls.update();
+        renderer.render(scene, camera);
+      })();
+      if (window.ResizeObserver) {
+        new ResizeObserver(() => {
+          const w2 = d3dEl.clientWidth;
+          camera.aspect = w2 / H; camera.updateProjectionMatrix();
+          renderer.setSize(w2, H);
+        }).observe(d3dEl);
+      }
+    } catch (e) { drone3dError('โหลดโมเดล 3D ไม่สำเร็จ (' + ((e && e.message) || e) + ')'); }
+  }
+  if (d3dEl) loadThree().then(initDrone3D).catch(() => drone3dError('ไม่สามารถโหลด Three.js จาก CDN ได้'));
 </script>
 </body>
 </html>
