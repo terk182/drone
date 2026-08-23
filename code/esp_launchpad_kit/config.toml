@@ -7,7 +7,7 @@
 # IMPORTANT:
 #   - ทุก URL ด้านล่างต้องเข้าถึงได้สาธารณะและเปิด CORS
 #   - แนะนำโฮสต์ที่ GitHub Pages / GitHub raw / Netlify / Vercel / Cloudflare Pages
-#   - แทนที่ __BASE_URL__ ทุกจุดด้วย URL โฟลเดอร์ที่ฝากไฟล์ไว้ (เช่น https://user.github.io/esp-drone-fw/)
+#   - BASE_URL นี้ = https://terk182.github.io/drone/code/esp_launchpad_kit/
 # ============================================================================
 
 esp_toml_version = 1.0
@@ -31,8 +31,8 @@ chip = "esp32s3"
 # คำอธิบายสั้น ๆ
 description = "ESP-FLY โดรนเพื่อการศึกษา (ESP32-S3 SuperMini + MPU6050)"
 
-# ไฟล์ README แสดงใน UI (Markdown) — เปลี่ยนเป็น URL ของ README.md ของคุณ
-readme.text = "__BASE_URL__/README.md"
+# ไฟล์ README แสดงใน UI (Markdown) — อยู่ที่โฟลเดอร์ kit
+readme.text = "https://terk182.github.io/drone/code/esp_launchpad_kit/README.md"
 
 # baudrate คอนโซลหลัง flash (ค่าเริ่มต้น 115200)
 console_baudrate = 115200
@@ -43,6 +43,6 @@ console_baudrate = 115200
 #   flash ที่ 0x0 — ค่า dio / 80MHz / 4MB ฝังในไฟล์แล้ว
 # ============================================================================
 image.esp32s3.parts = [
-    "__BASE_URL__/merged.bin"
+    "https://terk182.github.io/drone/code/esp_launchpad_kit/bin/merged.bin"
 ]
 image.esp32s3.addresses = ["0x0"]
