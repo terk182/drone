@@ -130,6 +130,20 @@
   .diagram svg{display:block; margin:0 auto; max-width:100%; height:auto;}
   .diagram figcaption{text-align:center; color:var(--muted); font-size:13.5px; margin-top:10px;}
 
+  /* ---------- MIXER DEMO (sliders) ---------- */
+  .mixer-demo{background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius); padding:20px; margin:18px 0;}
+  .mixer-grid{display:grid; grid-template-columns:1fr 1.5fr; gap:24px; align-items:start;}
+  @media(max-width:760px){.mixer-grid{grid-template-columns:1fr;}}
+  .mixer-sliders label{display:block; margin-bottom:12px; font-size:13.5px; color:var(--muted);}
+  .mixer-sliders label b{float:right; color:var(--accent); font-family:Consolas,monospace; font-size:14px;}
+  .mixer-sliders input[type=range]{width:100%; margin-top:5px; accent-color:var(--accent); cursor:pointer;}
+  .mbar{display:flex; align-items:center; gap:10px; margin-bottom:11px; font-size:13px;}
+  .mtag{width:158px; flex-shrink:0; color:var(--muted);}
+  .mtag .mCW{color:#3fb950;} .mtag .mCCW{color:#58a6ff;}
+  .mtrack{flex:1; height:18px; background:#0a0e14; border:1px solid var(--line); border-radius:6px; overflow:hidden;}
+  .mfill{height:100%; width:50%; background:var(--accent); border-radius:6px; transition:width .15s ease, background .15s ease;}
+  .mval{width:56px; text-align:right; font-family:Consolas,monospace; font-weight:700; color:var(--text); flex-shrink:0;}
+
   /* ---------- IMAGES / PHOTOS ---------- */
   figure.photo{
     background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius);
@@ -517,12 +531,41 @@ m4 = 50 − 10 = 40   (CCW)</pre>
       <p class="muted" style="font-size:13px; margin-top:8px">คู่ CW M1,M3 = 60 > คู่ CCW M2,M4 = 40 → หมุนซ้าย (ทวนเข็มนาฬิกา)</p>
     </div>
   </div>
-  <div class="callout info"><b>💡 ลองรวมทุกแกนพร้อมกัน</b> สั่ง <code>throttle=50, roll=10, pitch=5, yaw=10</code>:
-  <pre style="margin:8px 0 0">m1 = 50 − 5 + 2.5 + 10 = 57.5   (หน้า-ซ้าย)
-m2 = 50 − 5 − 2.5 − 10 = 32.5   (หลัง-ขวา)
-m3 = 50 + 5 − 2.5 + 10 = 62.5   (หลัง-ซ้าย)
-m4 = 50 + 5 + 2.5 − 10 = 47.5   (หน้า-ขวา)</pre>
-  <p class="muted" style="font-size:13px; margin:8px 0 0">ผลรวมยัง = 200 — M3 มากสุด (62.5) ส่วน M2 น้อยสุด (32.5) ลองเดาดูว่าทำไม แล้วตรวจกับใบงาน 1 📝</p></div>
+  <div class="mixer-demo">
+    <div class="mixer-grid">
+      <div class="mixer-sliders">
+        <b style="color:var(--text)">🎛️ เลื่อนแถบ แล้วค่าด้านขวาจะคำนวณให้ทันที</b>
+        <label style="margin-top:12px">Throttle (0–100)
+          <b id="mxThrV">50</b>
+          <input type="range" id="mxThr" min="0" max="100" step="1" value="50">
+        </label>
+        <label>Roll (−100…100)
+          <b id="mxRollV">0</b>
+          <input type="range" id="mxRoll" min="-100" max="100" step="1" value="0">
+        </label>
+        <label>Pitch (−100…100)
+          <b id="mxPitchV">0</b>
+          <input type="range" id="mxPitch" min="-100" max="100" step="1" value="0">
+        </label>
+        <label>Yaw (−100…100)
+          <b id="mxYawV">0</b>
+          <input type="range" id="mxYaw" min="-100" max="100" step="1" value="0">
+        </label>
+        <p class="muted" style="font-size:12.5px; margin:10px 0 0">สังเกต: <code>roll</code> กับ <code>pitch</code> หาร 2 (เพราะแขน X ทำมุม 45°) ส่วน <code>yaw</code> เต็มค่า</p>
+      </div>
+      <div>
+        <div class="mbar"><span class="mtag">M1 · หน้า-ซ้าย · <b class="mCW">CW</b></span><div class="mtrack"><div class="mfill" id="mf1"></div></div><b class="mval" id="mv1">50</b></div>
+        <div class="mbar"><span class="mtag">M2 · หลัง-ขวา · <b class="mCCW">CCW</b></span><div class="mtrack"><div class="mfill" id="mf2"></div></div><b class="mval" id="mv2">50</b></div>
+        <div class="mbar"><span class="mtag">M3 · หลัง-ซ้าย · <b class="mCW">CW</b></span><div class="mtrack"><div class="mfill" id="mf3"></div></div><b class="mval" id="mv3">50</b></div>
+        <div class="mbar"><span class="mtag">M4 · หน้า-ขวา · <b class="mCCW">CCW</b></span><div class="mtrack"><div class="mfill" id="mf4"></div></div><b class="mval" id="mv4">50</b></div>
+        <p class="muted" style="font-size:12.5px; margin:8px 0 0"><span style="color:#3fb950">■</span> = เร่งขึ้น · <span style="color:#d29922">■</span> = ผ่อนลง (เทียบกับ throttle) · ค่าตัด (clamp) ที่ 0–100 เหมือนเฟิร์มแวร์ · ผลรวม = <b id="mxSum" style="color:var(--accent)">200</b></p>
+      </div>
+    </div>
+    <pre id="mxFormula" style="margin:14px 0 0">m1 = 50 − 0/2 + 0/2 + 0 = 50
+m2 = 50 − 0/2 − 0/2 − 0 = 50
+m3 = 50 + 0/2 − 0/2 + 0 = 50
+m4 = 50 + 0/2 + 0/2 − 0 = 50</pre>
+  </div>
 
   <h4>การหักล้างแรงบิดของใบพัด (Torque cancellation)</h4>
   <p>ใบพัดหมุนดันอากาศลงเพื่อสร้างแรงยก แต่ <b>การหมุนนั้นสร้างแรงบิดโต้กลับ (reaction torque) ในทิศตรงข้ามเสมอ</b> — ใบพัด CW จะผลักเฟรมให้อยากหมุนทวนเข็ม ถ้าใบพัดทั้ง 4 หมุนทิศเดียวกัน โดรนจะปั่นหมุนรอบแกนตั้งเอง (yaw spin) ควบคุมไม่ได้</p>
@@ -1401,6 +1444,41 @@ cf.param.<span class="f">set_value</span>(<span class="s">'pid_attitude.roll_kp'
       projBtn.textContent = '🖥️ โหมดโปรเจกเตอร์';
     }
   });
+
+  // ---------- MIXER DEMO (sliders) ----------
+  const mxEls = { T: document.getElementById('mxThr'), r: document.getElementById('mxRoll'), p: document.getElementById('mxPitch'), y: document.getElementById('mxYaw') };
+  const mxVals = { T: document.getElementById('mxThrV'), r: document.getElementById('mxRollV'), p: document.getElementById('mxPitchV'), y: document.getElementById('mxYawV') };
+  const mxFill = [document.getElementById('mf1'), document.getElementById('mf2'), document.getElementById('mf3'), document.getElementById('mf4')];
+  const mxNum  = [document.getElementById('mv1'), document.getElementById('mv2'), document.getElementById('mv3'), document.getElementById('mv4')];
+  const mxSum  = document.getElementById('mxSum');
+  const mxFormula = document.getElementById('mxFormula');
+  const rnd1 = v => Math.round(v * 10) / 10;
+  const fmt = v => ('' + rnd1(v)).replace(/\.0$/, '');
+  function updateMixer() {
+    const T = +mxEls.T.value, r = +mxEls.r.value, p = +mxEls.p.value, y = +mxEls.y.value;
+    // X-quad mixer (ตรงกับ power_distribution_stock.c)
+    const raw = [ T - r/2 + p/2 + y, T - r/2 - p/2 - y, T + r/2 - p/2 + y, T + r/2 + p/2 - y ];
+    const terms = [ [T, -r/2, p/2, y], [T, -r/2, -p/2, -y], [T, r/2, -p/2, y], [T, r/2, p/2, -y] ];
+    mxVals.T.textContent = T; mxVals.r.textContent = r; mxVals.p.textContent = p; mxVals.y.textContent = y;
+    let sum = 0; const lines = [];
+    for (let i = 0; i < 4; i++) {
+      const v = Math.max(0, Math.min(100, raw[i])); // clamp เหมือนเฟิร์มแวร์
+      sum += v;
+      mxFill[i].style.width = v + '%';
+      mxFill[i].style.background = raw[i] > T ? '#3fb950' : (raw[i] < T ? '#d29922' : 'var(--accent)');
+      mxNum[i].textContent = fmt(v);
+      let line = 'm' + (i + 1) + ' = ' + T;
+      for (let j = 1; j < 4; j++) {
+        const t = rnd1(terms[i][j]);
+        line += (t < 0 ? ' − ' + fmt(-t) : ' + ' + fmt(t));
+      }
+      lines.push(line + ' = ' + fmt(v));
+    }
+    mxSum.textContent = sum;
+    mxFormula.textContent = lines.join('\n');
+  }
+  ['T','r','p','y'].forEach(k => mxEls[k].addEventListener('input', updateMixer));
+  updateMixer();
 </script>
 </body>
 </html>
