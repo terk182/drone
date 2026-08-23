@@ -150,6 +150,28 @@
   .drone3d canvas{display:block;}
   .drone3d .err{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:13px; text-align:center; padding:20px; line-height:1.7;}
 
+  /* ---------- SEESAW DEMO (ไม้กระดก) ---------- */
+  .seesaw{background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin:14px 0;}
+  .ss-stage{position:relative; height:190px; margin-bottom:8px;}
+  .ss-plank{position:absolute; left:50%; bottom:34px; width:86%; height:14px; margin-left:-43%;
+    background:linear-gradient(180deg,#4a5a72,#2d3748); border-radius:7px;
+    transform-origin:50% 100%; box-shadow:0 4px 10px rgba(0,0,0,.4);}
+  .ss-axle{position:absolute; left:50%; bottom:34px; width:18px; height:18px; margin-left:-9px; border-radius:50%;
+    background:var(--accent); z-index:3; box-shadow:0 0 0 4px rgba(88,166,255,.25);}
+  .ss-pivot{position:absolute; left:50%; bottom:0; margin-left:-24px; width:0; height:0;
+    border-left:24px solid transparent; border-right:24px solid transparent; border-bottom:34px solid #39475c;}
+  .ss-w{position:absolute; top:-38px; width:84px; text-align:center; font-size:12px; font-weight:600; line-height:1.35;
+    background:var(--card); border:1px solid var(--line); border-radius:8px; padding:5px 3px; color:var(--muted);}
+  .ss-w.l{left:8px;} .ss-w.r{right:8px;}
+  .ss-w .big{font-size:16px; display:block;}
+  .ss-w .cw{color:#3fb950;} .ss-w .ccw{color:#58a6ff;} .ss-w .num{color:var(--accent); font-family:Consolas,monospace;}
+  .ss-sliders{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:12px 0;}
+  @media(max-width:560px){.ss-sliders{grid-template-columns:1fr;}}
+  .ss-sliders label{font-size:13.5px; color:var(--muted);}
+  .ss-sliders label b{float:right; color:var(--accent); font-family:Consolas,monospace;}
+  .ss-sliders input[type=range]{width:100%; margin-top:5px; accent-color:var(--accent); cursor:pointer;}
+  .ss-status{font-size:14px; font-weight:600; text-align:center; padding:10px; border-radius:8px; border:1px solid var(--line); background:var(--card);}
+
   /* ---------- IMAGES / PHOTOS ---------- */
   figure.photo{
     background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius);
@@ -460,6 +482,33 @@
       <p class="muted" style="font-size:13px">เวลา "หันซ้าย/ขวา" ก็คือการเร่งมอเตอร์คู่ CW หรือ CCW ให้แรงบิดไม่สมดุลกันนั่นเอง</p>
     </div>
   </div>
+
+  <h3>2.1.1 กฎของนิวตัน + ไม้กระดก — เข้าใจแรง/แรงบิดแบบง่าย</h3>
+  <p>หลายคนงงกับ "แรงบิดหักล้าง" ของโดรน ลองคิดเป็น<b>ไม้กระดก</b>ก่อน: ไม้กระดกสมดุลเมื่อแรงสองข้างเท่ากัน (ระยะจากจุดหมุนเท่ากัน) — โดรนก็เหมือนกัน แค่ "แรง" เป็น<b>แรงบิดจากใบพัด</b> (มอเตอร์หมุน → เฟรมอยากหมุนสวนกลับ) ถ้าสองข้างเท่ากัน = ลอยนิ่งไม่หันเอง</p>
+  <div class="grid g3">
+    <div class="card"><h4>🧊 กฎข้อ 1 — ความเฉื่อย</h4><p>ไม่มีแรงลัพธ์ → อยู่นิ่ง/เคลื่อนที่ตรงคงที่<br>โดรนลอยนิ่ง = <b>แรงลัพธ์เป็นศูนย์</b> (แรงยกรวม = น้ำหนัก และแรงบิด CW = CCW)</p></div>
+    <div class="card"><h4>🏃 กฎข้อ 2 — F = ma</h4><p>แรงลัพธ์ ≠ 0 → เกิดความเร่ง<br>เร่งมอเตอร์ข้างหนึ่ง → แรงไม่สมดุล → โดรน<b>เอียง/เร่ง</b>ไปทางนั้น (เหมือนไม้กระดกหนักข้าง → เอียงข้างนั้น)</p></div>
+    <div class="card"><h4>🤝 กฎข้อ 3 — กิริยา/ปฏิกิริยา</h4><p>ทุกแรงมีคู่เท่ากันทิศตรงข้าม<br>ใบพัดดันอากาศ<b>ลง</b> → อากาศดันโดรน<b>ขึ้น</b> (แรงยก) · มอเตอร์หมุน CW → เฟรมอยากหมุน<b>ทวนเข็ม</b> (แรงบิดโต้กลับ)</p></div>
+  </div>
+
+  <h4>⚖️ ไม้กระดกจำลอง — เลื่อนแถบดู "สมดุลแรงบิด" (Yaw)</h4>
+  <p class="muted" style="font-size:13.5px">ซ้าย = แรงบิดคู่ <b style="color:#3fb950">CW (M1,M3)</b> · ขวา = คู่ <b style="color:#58a6ff">CCW (M2,M4)</b> — แรงบิด τ = แรง F × ระยะ d (ระยะสองข้างเท่ากัน) → สมดุลเมื่อ <b>F ซ้าย = F ขวา</b></p>
+  <div class="seesaw">
+    <div class="ss-stage">
+      <div class="ss-plank" id="ssPlank">
+        <div class="ss-w l" id="ssWL"><span class="big cw">🔻 CW</span>M1+M3 · <b class="num">35</b></div>
+        <div class="ss-w r" id="ssWR"><span class="big ccw">🔺 CCW</span>M2+M4 · <b class="num">35</b></div>
+      </div>
+      <div class="ss-axle"></div>
+      <div class="ss-pivot"></div>
+    </div>
+    <div class="ss-sliders">
+      <label>แรง CW — M1+M3 <b id="ssLV">35</b><input type="range" id="ssL" min="0" max="100" value="35"></label>
+      <label>แรง CCW — M2+M4 <b id="ssRV">35</b><input type="range" id="ssR" min="0" max="100" value="35"></label>
+    </div>
+    <div class="ss-status" id="ssStatus">⚖️ <b>สมดุล</b> — แรงบิดซ้าย = ขวา → โดรนลอยนิ่ง <b>ไม่หันเอง</b></div>
+  </div>
+  <div class="callout info"><b>💡 เชื่อมโยงกับโดรน</b> ไม้กระดกสมดุล = โดรนลอยนิ่งไม่หัน · เอียงซ้าย = คู่ CW แรงกว่า → หมุนซ้าย · เอียงขวา = คู่ CCW แรงกว่า → หมุนขวา — นี่คือหัวใจของ <b>การหักล้างแรงบิด (Torque cancellation)</b> และที่มาของคำสั่ง <code>yaw</code> ในสมการ mixer ด้านล่าง</div>
 
   <h4>ทิศทางการหมุนและการควบคุม Roll / Pitch / Yaw</h4>
   <div class="diagram">
@@ -1600,6 +1649,27 @@ cf.param.<span class="f">set_value</span>(<span class="s">'pid_attitude.roll_kp'
     } catch (e) { drone3dError('โหลดโมเดล 3D ไม่สำเร็จ (' + ((e && e.message) || e) + ')'); }
   }
   if (d3dEl) loadThree().then(initDrone3D).catch(() => drone3dError('ไม่สามารถโหลด Three.js จาก CDN ได้'));
+
+  // ---------- SEESAW DEMO (ไม้กระดก) ----------
+  const ssL = document.getElementById('ssL'), ssR = document.getElementById('ssR');
+  const ssLV = document.getElementById('ssLV'), ssRV = document.getElementById('ssRV');
+  const ssPlank = document.getElementById('ssPlank');
+  const ssStatus = document.getElementById('ssStatus');
+  const ssWL = document.getElementById('ssWL'), ssWR = document.getElementById('ssWR');
+  function updateSeesaw(){
+    const L = +ssL.value, R = +ssR.value;
+    ssLV.textContent = L; ssRV.textContent = R;
+    ssWL.querySelector('.num').textContent = L;
+    ssWR.querySelector('.num').textContent = R;
+    const diff = L - R;
+    ssPlank.style.transform = 'rotate(' + (diff * 0.75) + 'deg)';
+    if (Math.abs(diff) < 2) ssStatus.innerHTML = '⚖️ <b>สมดุล</b> — แรงบิดซ้าย = ขวา → โดรนลอยนิ่ง <b>ไม่หันเอง</b>';
+    else if (diff > 0) ssStatus.innerHTML = '🔻 <b>เอียงซ้าย</b> — คู่ CW (M1+M3) แรงกว่า → โดรน<b>หมุนซ้าย</b> (ทวนเข็ม)';
+    else ssStatus.innerHTML = '🔺 <b>เอียงขวา</b> — คู่ CCW (M2+M4) แรงกว่า → โดรน<b>หมุนขวา</b> (ตามเข็ม)';
+  }
+  ssL.addEventListener('input', updateSeesaw);
+  ssR.addEventListener('input', updateSeesaw);
+  updateSeesaw();
 </script>
 </body>
 </html>
