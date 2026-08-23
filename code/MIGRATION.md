@@ -4,6 +4,51 @@
 
 ---
 
+## 🐙 วิธีที่ 1: โคลนจาก GitHub (เครื่องใหม่ / นักเรียน)
+
+โค้ดทั้งหมดอยู่บน GitHub: **https://github.com/terk182/drone** (branch `main`)
+โครงสร้าง repo: `index.html` (สื่อ) อยู่ root · โค้ดทั้งหมดอยู่ในโฟลเดอร์ `code/`
+
+### 1. ติดตั้ง ESP-IDF v5.0 (สำคัญมาก — ต้อง **v5.0 เท่านั้น**)
+- ดาวน์โหลด: https://dl.espressif.com/dl/esp-idf/ → เลือก **v5.0** (หรือ Espressif IDE → v5.0)
+- ผลลัพธ์: `C:\Users\<ชื่อผู้ใช้>\esp\esp-idf`
+- ⚠️ เวอร์ชันอื่น (v5.1+/v6.x) โค้ด I2C compile ไม่ผ่าน (API เปลี่ยน)
+
+### 2. ติดตั้ง Python + pyserial
+```powershell
+python -m pip install pyserial
+```
+
+### 3. Clone โปรเจกต์
+```powershell
+git clone https://github.com/terk182/drone.git
+cd drone\code
+```
+
+### 4. Build + Flash เฟิร์มแวร์โดรน
+```powershell
+cd Co-Create_ESP-FLY\Firmware\esp-drone
+& 'C:\Users\<ชื่อผู้ใช้>\esp\esp-idf\export.ps1' | Out-Null   # เปิด environment
+idf.py build             # compile (build/ ไม่มีใน git — build ใหม่จากซอร์สได้เลย)
+idf.py -p COMx flash     # ลงบอร์ด (COMx = พอร์ตอนุกรมของเครื่องนี้)
+```
+- เมื่อ boot สำเร็จ: `MPU6050 WHO_AM_I=0x38` → `I2C connection [OK]` → `Ready to fly.`
+
+### 5. สคริปต์ตรวจ/ควบคุม (อยู่ใน `code\`)
+```powershell
+cd ..\..\..            # กลับไปที่ code\
+python diag_nan.py     # ตรวจ acc/gyro/attitude
+python read_boot.py    # อ่าน boot log
+```
+
+### 6. ตรวจเครื่องอัตโนมัติ (ไม่บังคับ)
+```powershell
+cd drone\code
+.\setup_new_machine.ps1
+```
+
+---
+
 ## 🎓 สำหรับห้องเรียน (ใช้เครื่องนี้โดยตรง)
 
 เครื่องนี้พร้อมใช้สอนแล้ว — มี **เมนูกดปุ่มเดียว**:
@@ -66,18 +111,17 @@
 
 ### ขั้น A: ตรวจว่าพร้อม
 ```powershell
-# เปิด PowerShell แล้วรันสคริปต์ตั้งค่าอัตโนมัติ (อยู่กับโฟลเดอร์โปรเจกต์)
-cd D:\drone_1
+# เปิด PowerShell แล้วรันสคริปต์ตั้งค่าอัตโนมัติ (อยู่ในโฟลเดอร์ code\ เดียวกับเฟิร์มแวร์)
+cd <repo>\code
 .\setup_new_machine.ps1
 ```
 สคริปต์จะตรวจ ESP-IDF, Python, pyserial และแนะนำขั้นตอนถัดไปให้เอง
 
 ### ขั้น B: Build + Flash เฟิร์มแวร์โดรน
 ```powershell
-cd D:\drone_1\Co-Create_ESP-FLY\Firmware\esp-drone
+cd <repo>\code\Co-Create_ESP-FLY\Firmware\esp-drone
 & 'C:\Users\<ชื่อผู้ใช้>\esp\esp-idf\export.ps1' | Out-Null   # เปิด environment
-idf.py fullclean        # ล้าง build เก่า (ครั้งแรกหลังย้าย)
-idf.py build            # compile
+idf.py build            # compile (build/ ไม่มีใน git — ไม่ต้อง fullclean)
 idf.py -p COMx flash    # ลงบอร์ด (COMx = พอร์ตอนุกรมของบอร์ดบนเครื่องนี้)
 ```
 - พอร์ตอนุกรมบนเครื่องใหม่อาจไม่ใช่ COM3 — ดูได้จาก Device Manager > Ports (COM & LPT)
@@ -85,26 +129,25 @@ idf.py -p COMx flash    # ลงบอร์ด (COMx = พอร์ตอนุ
 
 ### ขั้น C: ทดสอบ IMU (ไม่บังคับ)
 ```powershell
-cd D:\drone_1\imu_test
+cd <repo>\code\imu_test
 & 'C:\Users\<ชื่อผู้ใช้>\esp\esp-idf\export.ps1' | Out-Null
-idf.py fullclean
 idf.py build
 idf.py -p COMx flash   # ระวัง: จะทับเฟิร์มแวร์โดรน — ทดสอบเสร็จต้อง flash โดรนกลับ
 ```
 > หลังทดสอบ IMU เสร็จ ต้องกลับไป flash เฟิร์มแวร์โดรนใหม่ (ขั้น B) เสมอ
 
 ### ขั้น D: เชื่อมต่อ WiFi + ทดสอบด้วย Python
-1. เชื่อมต่อ WiFi คอมพิวเตอร์เข้ากับ AP ของโดรน: `ESP-DRONE_9C139EF3414D` รหัส `12345678`
+1. เชื่อมต่อ WiFi คอมพิวเตอร์เข้ากับ AP ของโดรน: `ESP-DRONE_XXXXXXXXXXXX` รหัส `12345678`
 2. รันสคริปต์ทดสอบ (path ในสคริปต์ปรับเป็นอัตโนมัติแล้ว ไม่ต้องแก้):
    ```powershell
-   cd D:\drone_1
+   cd <repo>\code
    python diag_nan.py              # ตรวจ acc/gyro/attitude
    python drone_logstream_test.py  # stream ค่า log จากโดรน
    ```
 
 ### ขั้น E: เปิดสื่อการสอน
 ```powershell
-start D:\drone_1\teaching_materials\index.html
+start <repo>\index.html
 ```
 
 ---
