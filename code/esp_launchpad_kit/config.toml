@@ -1,0 +1,48 @@
+# ============================================================================
+# ESP-Launchpad (Minimal Launchpad) config — ESP-FLY Drone (ESP32-S3 SuperMini)
+#
+# Usage URL (after hosting):
+#   https://espressif.github.io/esp-launchpad/minimal-launchpad/?flashConfigURL=<URL ของ config.toml นี้>
+#
+# IMPORTANT:
+#   - ทุก URL ด้านล่างต้องเข้าถึงได้สาธารณะและเปิด CORS
+#   - แนะนำโฮสต์ที่ GitHub Pages / GitHub raw / Netlify / Vercel / Cloudflare Pages
+#   - แทนที่ __BASE_URL__ ทุกจุดด้วย URL โฟลเดอร์ที่ฝากไฟล์ไว้ (เช่น https://user.github.io/esp-drone-fw/)
+# ============================================================================
+
+esp_toml_version = 1.0
+
+# ชื่อแอป (แสดงใน UI เหนือปุ่ม Connect) — ใช้แอปแรกในลิสต์เท่านั้น
+supported_apps = ["ESP-Drone"]
+
+# ใช้ merged.bin ไฟล์เดียว (รวม bootloader + partition table + app แล้ว)
+# minimal-launchpad ยังต้อง multipart = true เพื่อให้อ่าน parts/addresses
+multipart = true
+
+# ชิปเป้าหมาย — ต้องตรงกับ key image.<chip> ด้านล่าง (ตัวพิมพ์เล็ก)
+chip = "esp32s3"
+
+# ============================================================================
+# APP CONFIGURATION
+# ============================================================================
+
+[ESP-Drone]
+
+# คำอธิบายสั้น ๆ
+description = "ESP-FLY โดรนเพื่อการศึกษา (ESP32-S3 SuperMini + MPU6050)"
+
+# ไฟล์ README แสดงใน UI (Markdown) — เปลี่ยนเป็น URL ของ README.md ของคุณ
+readme.text = "__BASE_URL__/README.md"
+
+# baudrate คอนโซลหลัง flash (ค่าเริ่มต้น 115200)
+console_baudrate = 115200
+
+# ============================================================================
+# FIRMWARE IMAGE (ต้องตรงกับ chip ด้านบน)
+#   merged.bin = bootloader + partition-table + app รวมเป็นไฟล์เดียว
+#   flash ที่ 0x0 — ค่า dio / 80MHz / 4MB ฝังในไฟล์แล้ว
+# ============================================================================
+image.esp32s3.parts = [
+    "__BASE_URL__/merged.bin"
+]
+image.esp32s3.addresses = ["0x0"]

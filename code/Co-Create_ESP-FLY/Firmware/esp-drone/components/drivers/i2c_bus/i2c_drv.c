@@ -1,0 +1,156 @@
+/**
+ * ESP-Drone Firmware
+ *
+ * Copyright 2019-2020  Espressif Systems (Shanghai)
+ * Copyright (c) 2014, Bitcraze AB, All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ *
+ * i2c_drv.c - i2c driver implementation
+ *
+ * @note
+ * For some reason setting CR1 reg in sequence with
+ * I2C_AcknowledgeConfig(I2C_SENSORS, ENABLE) and after
+ * I2C_GenerateSTART(I2C_SENSORS, ENABLE) sometimes creates an
+ * instant start->stop condition (3.9us long) which I found out with an I2C
+ * analyzer. This fast start->stop is only possible to generate if both
+ * start and stop flag is set in CR1 at the same time. So i tried setting the CR1
+ * at once with I2C_SENSORS->CR1 = (I2C_CR1_START | I2C_CR1_ACK | I2C_CR1_PE) and the
+ * problem is gone. Go figure...
+ */
+
+
+#include <string.h>
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+#include "freertos/semphr.h"
+
+#include "driver/gpio.h"
+#include "rom/ets_sys.h"
+
+#include "stm32_legacy.h"
+#include "i2c_drv.h"
+#include "config.h"
+#define DEBUG_MODULE "I2CDRV"
+#include "debug_cf.h"
+
+// Definitions of sensors I2C bus
+#define I2C_DEFAULT_SENSORS_CLOCK_SPEED             400000
+
+// Definition of eeprom and deck I2C buss,use two i2c with 400Khz clock simultaneously could trigger the watchdog
+#define I2C_DEFAULT_DECK_CLOCK_SPEED                100000
+
+static bool isinit_i2cPort[2] = {0, 0};
+
+// Bit-bang standard I2C bus recovery: if a slave latched the bus (holding SDA
+// low, e.g. clone MPU after an ESP32 reset without power cycle), toggling SCL
+// 9+ times with SDA released makes the slave release SDA.
+static void i2cdrvBitBangRecovery(const I2cDef *def)
+{
+    gpio_config_t io = {0};
+    io.pin_bit_mask = (1ULL << def->gpioSCLPin) | (1ULL << def->gpioSDAPin);
+    io.mode = GPIO_MODE_OUTPUT_OD;
+    io.pull_up_en = def->gpioPullup;
+    io.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    io.intr_type = GPIO_INTR_DISABLE;
+    gpio_config(&io);
+
+    gpio_set_level(def->gpioSDAPin, 1); // release SDA
+    for (int i = 0; i < 10; i++) {
+        gpio_set_level(def->gpioSCLPin, 0);
+        ets_delay_us(10);
+        gpio_set_level(def->gpioSCLPin, 1);
+        ets_delay_us(10);
+    }
+    gpio_set_level(def->gpioSDAPin, 1);
+    gpio_set_level(def->gpioSCLPin, 1);
+
+    DEBUG_PRINTI(" I2C bus recovery done (SCL=%u SDA=%u)", (unsigned)def->gpioSCLPin, (unsigned)def->gpioSDAPin);
+}
+
+// Cost definitions of busses
+static const I2cDef sensorBusDef = {
+    .i2cPort            = I2C_NUM_0,
+    .i2cClockSpeed      = I2C_DEFAULT_SENSORS_CLOCK_SPEED,
+    .gpioSCLPin         = CONFIG_I2C0_PIN_SCL,
+    .gpioSDAPin         = CONFIG_I2C0_PIN_SDA,
+    // NOTE: clone MPU modules on the ESP32-S3 SuperMini have no external
+    // pullups; internal pullups are required or I2C reads intermittently
+    // return 0x00 (accel=0, WHO_AM_I sometimes 0x00 -> reboot loop).
+    .gpioPullup         = GPIO_PULLUP_ENABLE,
+};
+
+I2cDrv sensorsBus = {
+    .def                = &sensorBusDef,
+};
+
+static const I2cDef deckBusDef = {
+    .i2cPort            = I2C_NUM_1,
+    .i2cClockSpeed      = I2C_DEFAULT_DECK_CLOCK_SPEED,
+    .gpioSCLPin         = CONFIG_I2C1_PIN_SCL,
+    .gpioSDAPin         = CONFIG_I2C1_PIN_SDA,
+    .gpioPullup         = GPIO_PULLUP_ENABLE,
+};
+
+I2cDrv deckBus = {
+    .def                = &deckBusDef,
+};
+
+static void i2cdrvInitBus(I2cDrv *i2c)
+{
+    if (isinit_i2cPort[i2c->def->i2cPort]) {
+        return;
+    }
+
+    // A slave may have latched the bus during a previous reset; recover it
+    // before installing the I2C driver.
+    i2cdrvBitBangRecovery(i2c->def);
+
+    i2c_config_t conf = {0};
+    conf.mode = I2C_MODE_MASTER;
+    conf.sda_io_num = i2c->def->gpioSDAPin;
+    conf.sda_pullup_en = i2c->def->gpioPullup;
+    conf.scl_io_num = i2c->def->gpioSCLPin;
+    conf.scl_pullup_en = i2c->def->gpioPullup;
+    conf.master.clk_speed = i2c->def->i2cClockSpeed;
+    esp_err_t err = i2c_param_config(i2c->def->i2cPort, &conf);
+
+    if (!err) {
+        err = i2c_driver_install(i2c->def->i2cPort, conf.mode, 0, 0, 0);
+    }
+
+    DEBUG_PRINTI(" i2c %d driver install return = %d", i2c->def->i2cPort, err);
+    i2c->isBusFreeMutex = xSemaphoreCreateMutex();
+    isinit_i2cPort[i2c->def->i2cPort] = true;
+}
+
+
+//-----------------------------------------------------------
+
+void i2cdrvInit(I2cDrv *i2c)
+{
+    i2cdrvInitBus(i2c);
+}
+
+void i2cdrvTryToRestartBus(I2cDrv *i2c)
+{
+    // Full restart: delete the driver (ignore error if not installed), then
+    // re-init (which runs bit-bang recovery + reinstall).
+    i2c_driver_delete(i2c->def->i2cPort);
+    isinit_i2cPort[i2c->def->i2cPort] = false;
+    i2cdrvInitBus(i2c);
+}
+

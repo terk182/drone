@@ -1,0 +1,25 @@
+# ===== ESP-IDF / เฟิร์มแวร์ =====
+build/
+sdkconfig.old
+sdkconfig.defaults.bak
+
+# ===== Python =====
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# ===== Log / temp =====
+*.log
+boot_full.log
+
+# ===== OS / editor =====
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
+
+# ===== keep working firmware backup =====
+!backup_firmware/ESPDrone_good.bin

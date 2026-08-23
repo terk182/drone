@@ -1,0 +1,7 @@
+﻿# build outputs
+**/build/
+# python
+__pycache__/
+*.pyc
+# logs
+*.log
