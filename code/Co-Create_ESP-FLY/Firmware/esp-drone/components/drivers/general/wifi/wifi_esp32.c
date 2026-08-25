@@ -248,9 +248,9 @@ void wifiInit(void)
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
 
-    // ลดกำลังส่ง WiFi เป็น 10 dBm (API รับหน่วย 0.25 dBm -> 10 dBm = 40)
+    // ลดกำลังส่ง WiFi เป็น 8 dBm (API รับหน่วย 0.25 dBm -> 8 dBm = 32)
     // ลดไฟตก/AP ดับตอน TX สูง (SuperMini + สาย USB ไม่นิ่ง -> brownout)
-    esp_err_t txerr = esp_wifi_set_max_tx_power(40);
+    esp_err_t txerr = esp_wifi_set_max_tx_power(32);
     if (txerr != ESP_OK) {
         DEBUG_PRINT_LOCAL("set_max_tx_power failed: %d", txerr);
     }
