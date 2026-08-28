@@ -2,3 +2,6 @@ https://espressif.github.io/esp-launchpad/minimal-launchpad/?flashConfigURL=http
 
 
 https://www.youtube.com/watch?v=6yJAR7faHfU
+
+
+https://terk182.github.io/drone/
